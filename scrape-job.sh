@@ -28,6 +28,12 @@ VARLEY_TOMAGO="/home/$USER/Network-Drives/U-Drive/VARLEYTGO"
 # Defining the thile to work on, $1 is the first argument passed when loading this script
 fileName=$1
 
+###############################################
+# dos2unix has to be the first command to execute before the script can start working on $fileName
+# removes all windows new line format so linux can work on it
+
+dos2unix "$fileName"
+
 ###############################################################################################
 # Getting the customer name, this assumes that the customer name is on line 2 of the txt file
 customerName=$(sed -n '2p' "$fileName")
@@ -100,10 +106,6 @@ else
   sleep 1
   exit
 fi
-
-############################################################################################
-
-dos2unix "$fileName"
 
 ############################################################################################
 echo "The customer name is:" $customerName
@@ -271,6 +273,7 @@ isThereRotoParts='FALSE'
 rotoPartArray=()
 rotoPartRevision=()
 rotoPartTicketNumberArray=()
+laserPartMaterialCodeArray=()
 
 ########################################################
 ############  Echo Test of all the Arrays  #############
@@ -287,8 +290,24 @@ do
   echo "Qty:" ${qtyArray[$i]}
 
   linesAhead=$(( ${jobTickLineNumber[$i]} + 35 ))
+  materialCodeLine=$(( ${jobTickLineNumber[$i]} + 25 ))
   if (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep '3030 LASER 2' -q); then
     echo "This part has 3030 LASER 2"
+
+    sed -n "$materialCodeLine p" $fileName | grep "Material Code" -q
+    if [[ $? == '1' ]]; then
+        oneLineAhead=$materialCodeLine
+        echo "'Materail Code' was not on the expected line, going to search the next line..."
+        sed -n "$materialCodeLine p" $fileName | grep "Material Code" -q
+        while [[ $? == '1' ]]; do
+            ((oneLineAhead++))
+            echo "Jumping to line" $oneLineAhead "to look for 'Material Code'"
+            sed -n "$oneLineAhead p" $fileName | grep "Material Code" -q
+        done
+        tempValue=$(( $oneLineAhead + 1 ))
+        laserPartMaterialCodeArr+=("$(sed -n "$tempValue p" "$fileName" | cut -f 1)")
+        sed -n "$tempValue p" "$fileName" | cut -f 1
+    fi
   elif (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep 'ROTO 3030' -q); then
     echo "This part has ROTO 3030"
     echo "Going to send this part to PRINTY the print robot :)"
