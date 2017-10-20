@@ -24,3 +24,14 @@ Copy the script to your home directory preferably its own folder and make the sc
 Change into the directory where the script is located,
 $ cmod +x scrape-job.sh
 ```
+
+### Runnings the Script
+
+Once you have exported a job into a .txt format you can now run the script
+
+replace 'jobNumber.txt' with the file you exported from iTMS 
+
+```
+Change into the directory where the script is located,
+$ ./scrape-job.sh jobNumber.txt
+```
