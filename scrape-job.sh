@@ -201,7 +201,7 @@ do
 
       sed -n "$orderQty p" "$fileName" | grep "Order Qty" -q
       if [[ $? == '1' ]]; then
-          echo "Order Qty was not on the expected line number" $orderQty
+          echo "'Order Qty' was not on the expected line, going to seach the next line..."
           oneLineAhead=$orderQty
           counter=0
 
@@ -210,9 +210,10 @@ do
           do
             ((oneLineAhead++))
             ((counter++))
-            echo "Skipping one line ahead, number" $oneLineAhead "for the string 'Order Qty'"
+            echo "Jumping to line" $oneLineAhead "to look for 'Order Qty'"
             sed -n "$oneLineAhead p" "$fileName" | grep "Order Qty" -q
           done
+          echo "Success! found 'Order Qty' on line" $oneLineAhead
           tempValue=$(( $oneLineAhead - 1 ))
           gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 4))
           revisionArray+=("$(sed -n  "$tempValue p" "$fileName" | cut -f 5)")
@@ -261,13 +262,12 @@ do
         qtyArray+=($(sed -n "$qtyLine p" "$fileName" | cut -f 5))
     fi
   fi
-  echo "Loop number" $i
 done
 
 
-#######################################################################################
-############  Creating the ROTO part, Laser part and Material Code Array  #############
-#######################################################################################
+################################################################################
+###############  Creating the Processs and Material Code Array  ################
+################################################################################
 
 isThereRotoParts='FALSE'
 
