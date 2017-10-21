@@ -30,9 +30,9 @@ fileName=$1
 
 ###############################################
 # dos2unix has to be the first command to execute before the script can start working on $fileName
-# removes all windows new line format so linux can work on it
+# removes all windows new line format so linux can work on it, -q = quiet mode
 
-dos2unix "$fileName"
+dos2unix -q "$fileName"
 
 ###############################################################################################
 # Getting the customer name, this assumes that the customer name is on line 2 of the txt file
@@ -41,29 +41,28 @@ customerName=$(sed -n '2p' "$fileName")
 ###############################################################################################
 
 echo
-# echo "                    |"
-echo "              pN▒g▒p▒g▒▒g▒ge"
-echo "             ▒▒▒▒▒▒▒░░▒░▒░▒"
-echo "           _0▒░▒░▒░░▒▒▒▒▒▒!"
-echo "           4▒▒▒▒▒░░░▒░░▒▒▒▒▒Y"
-echo "           |\` ~~#00░░0▒MMM\"M|"
-echo "                 \`gM░M7"
-echo "          |       00Q0       |"
-echo "          #▒____g▒0░░P______0"
-echo "          #▒0g_p#░░04▒▒&,__M#"
-echo "          0▒▒▒▒▒00   ]0▒▒▒▒00"
-echo "           |\j▒▒0'   '0▒▒▒4M'"
-echo "            |\#▒▒&▒▒gg▒▒0& |"
-echo "           \" ▒▒00▒▒▒▒00▒▒'d"
-echo "           %  ¼▒  ~P▒¼▒▒|¼¼|"
-echo "           M▒9▒,▒▒ ]▒] *▒j,g"
-echo "           l▒g▒▒] @▒9"
-echo "            ~▒0▒▒▒p ▒g▒"
-echo "              @░▒▒▒▒▒   ▒▒░"
-echo "               M0░░   ░░░^"
-echo "                 \`"
+echo "             pN▒g▒p▒g▒▒g▒ge"
+echo "            ▒▒▒▒▒▒▒░░▒░▒░▒"
+echo "          _0▒░▒░▒░░▒▒▒▒▒▒!"
+echo "          4▒▒▒▒▒░░░▒░░▒▒▒▒▒Y"
+echo "          |\` ~~#00░░0▒MMM\"M|"
+echo "                \`gM░M7"
+echo "         |       00Q0       |"
+echo "         #▒____g▒0░░P______0"
+echo "         #▒0g_p#░░04▒▒&,__M#"
+echo "         0▒▒▒▒▒00   ]0▒▒▒▒00"
+echo "          |\j▒▒0'   '0▒▒▒4M'"
+echo "           |\#▒▒&▒▒gg▒▒0& |"
+echo "          \" ▒▒00▒▒▒▒00▒▒'d"
+echo "          %  ¼▒  ~P▒¼▒▒|¼¼|"
+echo "          M▒9▒,▒▒ ]▒] *▒j,g"
+echo "          l▒g▒▒] @▒9"
+echo "           ~▒0▒▒▒p ▒g▒"
+echo "             @░▒▒▒▒▒   ▒▒░"
+echo "              M0░░   ░░░^"
+echo "                \`"
 echo
-echo "    Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7_"
+echo "   Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7_"
 echo
 
 ###############################################################################################
@@ -72,18 +71,14 @@ PRINT_ROTO_PROGRAMS="FALSE"
 TEST_MODE="FALSE"
 GRAB_ROTO_LSTs="FALSE"
 
-echo "Please choose an option"
+echo "  ╔═════════════════════════════════════════╗"
+echo "  ║     1) Print the Customers PDF's        ║"
+echo "  ║     2) Print the existing ROTO PDF's    ║"
+echo "  ║     3) Grab all the ROTO LST's          ║"
+echo "  ║     4) Test Mode                        ║"
+echo "  ╚═════════════════════════════════════════╝"
 echo
-echo "/******************************************/"
-echo "/*                                        */"
-echo "/*    1) Print the customers PDF's        */"
-echo "/*    2) Print the existing ROTO PDF's    */"
-echo "/*    3) Grab all the ROTO LST'           */"
-echo "/*    4) Test Mode                        */"
-echo "/*                                        */"
-echo "/******************************************/"
-echo
-read -p "Enter the option Number: " OPTION
+read -p "   Enter an option Number: " OPTION
 
 if [[ $OPTION == "1" ]]; then
   echo "Print the customers PDF's selected!"
@@ -193,75 +188,99 @@ revisionArray=()
 qtyArray=()
 for (( i=0; i<${arrayLength}; i++ ));
 do
+    tempTicketNumber=${jobTickLineNumber[$i]}
+    # 'Issue Date' should be 5 lines down from $tempTicketNumber
+    issueDate=$(( $tempTicketNumber + 5 ))
 
-  if [[ $customerName == 'EXPRESS COACH BUILDERS' ]]; then
-      echo "The customer is EXPRESS COACH BUILDERS"
-      tempTicketNumber=${jobTickLineNumber[$i]}
-      orderQty=$(( $tempTicketNumber + 5 ))
+    # testing if 'Issue Date' is 5 lines down from $jobTickLineNumber
+    sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
+    if [[ $? == '1' ]]; then
+        echo "'Issue Date' was not on the expected line, going to search the next line..."
+        oneLineAhead=$issueDate
 
-      sed -n "$orderQty p" "$fileName" | grep "Order Qty" -q
-      if [[ $? == '1' ]]; then
-          echo "'Order Qty' was not on the expected line, going to seach the next line..."
-          oneLineAhead=$orderQty
-          counter=0
-
-          sed -n "$orderQty p" "$fileName" | grep "Order Qty" -q
-          while [[ $? == '1' ]]
-          do
+        sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
+        while [[ $? == '1' ]]; do
             ((oneLineAhead++))
-            ((counter++))
-            echo "Jumping to line" $oneLineAhead "to look for 'Order Qty'"
-            sed -n "$oneLineAhead p" "$fileName" | grep "Order Qty" -q
-          done
-          echo "Success! found 'Order Qty' on line" $oneLineAhead
-          tempValue=$(( $oneLineAhead - 1 ))
-          gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 4))
-          revisionArray+=("$(sed -n  "$tempValue p" "$fileName" | cut -f 5)")
-          manufactureQtyLine=$(( $oneLineAhead + 1 ))
-          qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
-      else
-          tempValue=$(( $orderQty - 2 ))
-          gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
-          revisionArray+=("$(sed -n  "$tempValue p" "$fileName" | cut -f 2)")
-          manufactureQtyLine=$(( $orderQty + 1 ))
-          qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
-      fi
-  else
-      echo "The customer is not EXPRESS COACH BUILDERS"
-      tempTicketNumber=${jobTickLineNumber[$i]}
-      # order qty is usually +7 lines down from $jobTickLineNumber
-      orderQty=$(( $tempTicketNumber + 7 ))
+            echo "Jumping to line" $oneLineAhead "to look for 'Issue Date'"
+            sed -n "$oneLineAhead p" "$fileName" | grep "Issue Date" -q
+        done
 
-      # testing if Order qty is +7 lines down
-      sed -n "$orderQty p" "$fileName" | grep 'Order Qty' -q
-      # true = 0, false = 1 | if the last command returns a false value, it will start searching for it line by line
-      if [[ $? == '1' ]]; then
-          oneLineAhead=$orderQty
-          counter=0
-          echo "Order Qty was not on the expected line"
+        echo "Success! found 'Issue Date' on line" $oneLineAhead
+        echo "Now to check if 'Order Qty' is 2 lines down..."
 
-          sed -n "$orderQty p" "$fileName" | grep 'Order Qty' -q
-          while [[ $? == '1' ]]
-          do
-            echo "Loop number" $counter
-            ((oneLineAhead++))
-            ((counter++))
-            sed -n "$oneLineAhead p" "$fileName" | grep 'Order Qty' -q
-          done
-          tempValue=$(( $oneLineAhead - 1))
-          gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 4))
-          revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 5)")
-          qtyLine=$(( $oneLineAhead + 1 ))
-          qtyArray+=($(sed -n "$qtyLine p" "$fileName" | cut -f 5))
+        orderQty=$(( $oneLineAhead + 2 ))
+
+        sed -n "$orderQty p" "$fileName" | grep "Order Qty" -q
+        # if 'Order Qty' is not two lines down from 'Issue Date' the gciPartNumber will not be on the right line
+        # this is usually caused by a multi-line purchase order entry
+        if [[ $? == '1' ]]; then
+            echo "'Order Qty' was not on the expected line... Stupid thing!"
+            oneLineAhead=$orderQty
+
+            sed -n "$orderQty p" "$fileName" | grep "Order Qty" -q
+            while [[ $? == '1' ]]; do
+                ((oneLineAhead++))
+                echo "Jumping to line" $oneLineAhead "to look for 'Order Qty'"
+                sed -n "$oneLineAhead p" "$fileName" | grep "Order Qty" -q
+            done
+
+            echo "Success! found 'Order Qty' on line" $oneLineAhead
+            echo "Since 'Order Qty' was not two lines down from 'Issue Date' I have to approach this differently..."
+            # Usually if 'Order Qty' is not two lines down form 'Issue Date' the gciPartNumber and Revision is two lines up from 'Order Qty'
+            tempValue=$(( $oneLineAhead - 2 ))
+            gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
+            revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+            manufactureQtyLine=$(( $oneLineAhead + 1 ))
+            qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
+
+        else
+            echo "'Order Qty' was on the expected line, we can continue as normal"
+            tempValue=$(( $orderQty - 1 ))
+            gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 4))
+            revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 5)")
+            manufactureQtyLine=$(( $orderQty + 1 ))
+            qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
+        fi
     else
-        gciPartNumberLine=$(( $tempTicketNumber + 6 ))
-        gciPartNumber+=($(sed -n "$gciPartNumberLine p" "$fileName" | cut -f 4))
-        echo "The revision for ticket number" $(( $i + 1 )) "is," $(sed -n "$gciPartNumberLine p" "$fileName" | cut -f 5)
-        revisionArray+=("$(sed -n "$gciPartNumberLine p" "$fileName" | cut -f 5)")
-        qtyLine=$(( $gciPartNumberLine + 2 ))
-        qtyArray+=($(sed -n "$qtyLine p" "$fileName" | cut -f 5))
+        echo "Sweet! 'Issue Date was on the expected line'"
+        echo "Now to check if 'Order Qty' is 2 lines down..."
+
+        orderQty=$(( $issueDate + 2 ))
+
+        sed -n "$orderQty p" "$fileName" | grep "Order Qty" -q
+        # if 'Order Qty' is not two lines down from 'Issue Date' the gciPartNumber will not be on the right line
+        # this is usually caused by a multi-line purchase order entry
+        if [[ $? == '1' ]]; then
+            echo "'Order Qty' was not on the expected line... Stupid thing!"
+            oneLineAhead=$orderQty
+
+            sed -n "$orderQty p" "$fileName" | grep "Order Qty" -q
+            while [[ $? == '1' ]]; do
+                ((oneLineAhead++))
+                echo "Jumping to line" $oneLineAhead "to look for 'Order Qty'"
+                sed -n "$oneLineAhead p" "$fileName" | grep "Order Qty" -q
+            done
+
+            echo "Success! found 'Order Qty' on line" $oneLineAhead
+            echo "Since 'Order Qty' was not two lines down from 'Issue Date' I have to approach this differently..."
+            # Usually if 'Order Qty' is not two lines down form 'Issue Date' the gciPartNumber and Revision is two lines up from 'Order Qty'
+            tempValue=$(( $oneLineAhead - 2 ))
+            gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
+            revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+            manufactureQtyLine=$(( $oneLineAhead + 1 ))
+            qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
+
+        else
+            echo "'Order Qty' was on the expected line, we can continue as normal"
+            tempValue=$(( $orderQty - 1 ))
+            gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 4))
+            revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 5)")
+            manufactureQtyLine=$(( $orderQty + 1 ))
+            qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
+
+        fi
     fi
-  fi
+
 done
 
 
