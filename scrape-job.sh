@@ -134,9 +134,14 @@ for (( i=0; i<${arrayLength}; i++ ));
 do
   tempValue=${ticketLineNumber[$i]}
   jobTickLineNumber+=(${tempValue%:*})
+  ticketNumberArray+=($(( $i + 1 )))
 done
 
-# creating the client parn number array
+
+##################################################################
+############  Creating the Client Part Number Array  #############
+
+
 clientPartNumber=()
 for (( i=0; i<${arrayLength}; i++ ));
 do
@@ -176,8 +181,10 @@ do
   echo "Loop number" $i
 done
 
-# printing the client part number array into this text file
-# printf "%s\n" "${clientPartNumber[@]}" > ./$jobNumber/clientPartNumber.txt
+
+###########################################################################
+#########  Creating the GCI Part Number, Revision and Qty Array  ##########
+###########################################################################
 
 # the GCI part number and revision are on the same line
 # combining them into the same for loop
@@ -257,82 +264,100 @@ do
   echo "Loop number" $i
 done
 
-# printing the gci part number array into this text file
-# printf "%s\n" "${gciPartNumber[@]}" > ./$jobNumber/gciPartNumber.txt
 
-# qtyArray=()
-# for (( i=0; i<${arrayLength}; i++ ));
-# do
-#   tempTicketNumber=${jobTickLineNumber[$i]}
-#   tempValue=$(($tempTicketNumber + 12))
-#   qtyArray+=($(sed -n "$tempValue p" "$fileName" | cut -f 5))
-# done
-
+#######################################################################################
+############  Creating the ROTO part, Laser part and Material Code Array  #############
+#######################################################################################
 
 isThereRotoParts='FALSE'
-rotoPartArray=()
-rotoPartRevision=()
-rotoPartTicketNumberArray=()
-laserPartMaterialCodeArray=()
+
+processArray=()
+materialCodeArray=()
+
+for (( i=0; i<${arrayLength}; i++ ));
+do
+    linesAhead=$(( ${jobTickLineNumber[$i]} + 35 ))
+    materialCodeLine=$(( ${jobTickLineNumber[$i]} + 25 ))
+
+    # testing from the jobTickLineNumber to $linesAhead if the part is a '3030 LASER' part
+    if (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep '3030 LASER 2' -q); then
+        echo "This part has 3030 LASER 2"
+
+        processArray+=("3030 LASER 2")
+
+        # getting the material code for the 3030 LASER 2 part
+        sed -n "$materialCodeLine p" "$fileName" | grep "Material Code" -q
+        if [[ $? == '1' ]]; then
+            oneLineAhead=$materialCodeLine
+            echo "'Material Code' was not on the expected line, going to search the next line..."
+            sed -n "$materialCodeLine p" "$fileName" | grep "Material Code" -q
+            while [[ $? == '1' ]]; do
+                ((oneLineAhead++))
+                echo "Jumping to line" $oneLineAhead "to look for 'Material Code'"
+                sed -n "$oneLineAhead p" "$fileName" | grep "Material Code" -q
+            done
+            echo "Success! found 'Material Code' on line" $oneLineAhead
+            tempValue=$(( $oneLineAhead + 1 ))
+            sed -n "$tempValue p" "$fileName" | cut -f 1
+            materialCodeArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 1)")
+        fi
+
+    # testing from the jobTickLineNumber to $linesAhead if the part is a 'ROTO 3030' part
+    elif (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep 'ROTO 3030' -q); then
+        echo "This part has ROTO 3030"
+
+        processArray+=("ROTO 3030")
+
+        isThereRotoParts='TRUE'
+
+        # getting the material code for the 'ROTO 3030' part
+        sed -n "$materialCodeLine p" "$fileName" | grep "Material Code" -q
+        if [[ $? == '1' ]]; then
+            oneLineAhead=$materialCodeLine
+            echo "'Material Code' was not on the expected line, going to search the next line..."
+            sed -n "$materialCodeLine p" "$fileName" | grep "Material Code" -q
+            while [[ $? == '1' ]]; do
+                ((oneLineAhead++))
+                echo "Jumping to line" $oneLineAhead "to look for 'Material Code'"
+                sed -n "$oneLineAhead p" "$fileName" | grep "Material Code" -q
+            done
+            echo "Success! found 'Material Code' on line" $oneLineAhead
+            tempValue=$(( $oneLineAhead + 1 ))
+            sed -n "$tempValue p" "$fileName" | cut -f 1
+            materialCodeArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 1)")
+        fi
+
+    else
+        # if the part is neither a LASER or ROTO part
+        echo "This part is neither a LASER or ROTO part"
+
+        processArray+=("NOT LASER OR ROTO")
+        materialCodeArray+=("N/A")
+
+    fi
+done
 
 ########################################################
 ############  Echo Test of all the Arrays  #############
+########################################################
 
 echo
 
 for (( i=0; i<${arrayLength}; i++ ));
 do
-  ticketNumber=$(( $i + 1 ))
-  echo "Ticket Number" $jobNumber"-"$ticketNumber
+  echo "Ticket Number" $jobNumber"-"${ticketNumberArray[$i]}
   echo "GCI Part Number:" ${gciPartNumber[$i]}
   echo "Client Part Code:" ${clientPartNumber[$i]}
   echo "Revision:" ${revisionArray[$i]}
   echo "Qty:" ${qtyArray[$i]}
-
-  linesAhead=$(( ${jobTickLineNumber[$i]} + 35 ))
-  materialCodeLine=$(( ${jobTickLineNumber[$i]} + 25 ))
-  if (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep '3030 LASER 2' -q); then
-    echo "This part has 3030 LASER 2"
-
-    sed -n "$materialCodeLine p" $fileName | grep "Material Code" -q
-    if [[ $? == '1' ]]; then
-        oneLineAhead=$materialCodeLine
-        echo "'Materail Code' was not on the expected line, going to search the next line..."
-        sed -n "$materialCodeLine p" $fileName | grep "Material Code" -q
-        while [[ $? == '1' ]]; do
-            ((oneLineAhead++))
-            echo "Jumping to line" $oneLineAhead "to look for 'Material Code'"
-            sed -n "$oneLineAhead p" $fileName | grep "Material Code" -q
-        done
-        tempValue=$(( $oneLineAhead + 1 ))
-        laserPartMaterialCodeArr+=("$(sed -n "$tempValue p" "$fileName" | cut -f 1)")
-        sed -n "$tempValue p" "$fileName" | cut -f 1
-    fi
-  elif (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep 'ROTO 3030' -q); then
-    echo "This part has ROTO 3030"
-    echo "Going to send this part to PRINTY the print robot :)"
-    isThereRotoParts='TRUE'
-    # if customer equals BUSTECH we will have to use the clientPartNumber as the source for the rotoPartArray
-    if [[ $customerName == "BUSTECH" ]]; then
-      rotoPartTicketNumber=$i
-      rotoPartArray+=(${clientPartNumber[$i]})
-      rotoPartRevision+=("${revisionArray[$i]}")
-      rotoPartTicketNumberArray+=($ticketNumber)
-    else
-      #all other customers will use the gciPartNumber for their roto programs
-      rotoPartTicketNumber=$i
-      rotoPartArray+=(${gciPartNumber[$i]})
-      rotoPartTicketNumberArray+=($ticketNumber)
-    fi
-  else
-    echo "This part is neither laser of a roto part"
-  fi
-  echo
+  echo "Process:" ${processArray[$i]}
+  echo "Material:" ${materialCodeArray[$i]}
 done
 
 
 ########################################################
 ############  Printing the client drawings  ############
+########################################################
 
 if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
@@ -402,6 +427,7 @@ fi
 
 ########################################################
 ##########  Printing the existing roto pdf's  ##########
+########################################################
 
 if [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
 
@@ -444,8 +470,9 @@ if [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
   fi
 fi
 
-#####################################################################
+######################################################################
 ###########  Grabbing the ROTO lst's ready for Tube Nest  ############
+######################################################################
 
 if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
   echo
