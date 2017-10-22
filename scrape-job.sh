@@ -384,6 +384,7 @@ do
   echo "Qty:" ${qtyArray[$i]}
   echo "Process:" ${processArray[$i]}
   echo "Material:" ${materialCodeArray[$i]}
+  echo
 done
 
 
