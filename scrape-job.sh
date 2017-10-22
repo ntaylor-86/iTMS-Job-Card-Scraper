@@ -133,9 +133,22 @@ do
 done
 
 
+###############################################################################################
+# EXPRESS COACH BUILDERS, has some bad client part number entries in itms
+# if the below is not removed from the .txt file before processing it, it breaks a few things in bash
+
+  if [[ $customerName == "EXPRESS COACH BUILDERS" ]]; then
+      echo "Since the customer is 'EXPRESS COACH BUILDERS', I'll have to remove '[SPACE]***'"
+      echo "from all the Client Part Code fields in this job, otherwise shit breaks real good..."
+      sed -i 's/\s\*\*\*//g' "$fileName"
+      echo "'[SPACE]***' has been removed from this job"
+  fi
+##############################################################################################
+
+
 ##################################################################
 ############  Creating the Client Part Number Array  #############
-
+##################################################################
 
 clientPartNumber=()
 for (( i=0; i<${arrayLength}; i++ ));
