@@ -21,8 +21,16 @@ ROTO_LST_READY_TO_NEST="/home/$USER/Network-Drives/T-Drive/7000 TUBE JOBS READY 
 
 BUSTECH="/home/$USER/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
 EXPRESS_COACH_BUILDERS="/home/$USER/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
-JJ_RICHARDS="/home/$USER/Network-Drives/U-Drive/JJ RICHARDS"
+JJ_RICHARDS="/home/$USER/Network-Drives/U-Drive/JJRICHARDSENG"
 VARLEY_TOMAGO="/home/$USER/Network-Drives/U-Drive/VARLEYTGO"
+
+###############################################
+# Defining where the customer GEO's are
+BUSTECH_GEOS="/home/$USER/Network-Drives/U-Drive/BUSTECH/ITMS DXF"
+
+###############################################
+# Defining where to copy the GEO's that are ready to nest
+GEO_READY_TO_NEST="/home/$USER/Network-Drives/U-Drive/Jobs-Ready-To-Nest"
 
 ###############################################
 # Defining the thile to work on, $1 is the first argument passed when loading this script
@@ -70,12 +78,14 @@ PRINT_CUSTOMER_PDFS="FALSE"
 PRINT_ROTO_PROGRAMS="FALSE"
 TEST_MODE="FALSE"
 GRAB_ROTO_LSTs="FALSE"
+GRAB_GEOS="FALSE"
 
 echo "  ╔═════════════════════════════════════════╗"
 echo "  ║     1) Print the Customers PDF's        ║"
 echo "  ║     2) Print the existing ROTO PDF's    ║"
 echo "  ║     3) Grab all the ROTO LST's          ║"
-echo "  ║     4) Test Mode                        ║"
+echo "  ║     4) Grab all the GEO's               ║"
+echo "  ║     5) Test Mode                        ║"
 echo "  ╚═════════════════════════════════════════╝"
 echo
 read -p "   Enter an option Number: " OPTION
@@ -93,6 +103,10 @@ elif [[ $OPTION == "3" ]]; then
    GRAB_ROTO_LSTs="TRUE"
   sleep 1
 elif [[ $OPTION == "4" ]]; then
+  echo "Grab all the GEO's selected!"
+  GRAB_GEOS="TRUE"
+  sleep 1
+elif [[ $OPTION == "5" ]]; then
   echo "Test Mode selected!"
   TEST_MODE="TRUE"
   sleep 1
@@ -547,6 +561,42 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
       sleep 0.5
     fi
   done
+fi
+
+#################################################################
+#############  Grabbing the GEO's ready for Nest  ###############
+#################################################################
+
+if [[ $GRAB_GEOS == "TRUE" ]]; then
+    echo
+    echo "Going to copy all the GEO's that are ready to nest for this job to,"
+    echo $GEO_READY_TO_NEST"/"$jobNumber"/"
+    mkdir "$GEO_READY_TO_NEST/$jobNumber"
+    sleep 0.5
+
+    if [[ $customerName == "BUSTECH" ]]; then
+
+        cd "$BUSTECH_GEOS"
+        sleep 0.5
+
+        echo "The customer is BUSTECH, have to replce '-' with an underscore '_' for each part..."
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            if [[ ${processArray[$i]} == "3030 LASER 2" ]]; then
+                echo ${clientPartNumber[$i]} "is a 3030 LASER 2 part"
+                echo "Have to turn the '-' in the client part code into an '_'"
+                clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
+
+                if [[ ${revisionArray[$i]} == "ORIG" ]]; then
+                    test -e
+                    cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                else
+                    cp "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                fi
+
+            fi
+        done
+    fi
 fi
 
 # ###################################################################
