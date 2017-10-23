@@ -588,8 +588,13 @@ if [[ $GRAB_GEOS == "TRUE" ]]; then
                 clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
 
                 if [[ ${revisionArray[$i]} == "ORIG" ]]; then
-                    test -e
-                    cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                    test -e "${clientPartNumber[$i]}.GEO"
+                    if [[ $? == '0' ]]; then
+                        cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                    else
+                        echo "File does not exist!!!"
+                    fi
+
                 else
                     cp "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
                 fi
