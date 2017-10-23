@@ -588,15 +588,24 @@ if [[ $GRAB_GEOS == "TRUE" ]]; then
                 clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
 
                 if [[ ${revisionArray[$i]} == "ORIG" ]]; then
-                    test -e "${clientPartNumber[$i]}.GEO"
+                    test -e "${clientPartNumber[$i]}.[gG][eE][oO]"
                     if [[ $? == '0' ]]; then
-                        cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                      # the formatting of the cpoied part is currently as follows: 1 - 0026_01 - 12mm 250 GR - x6.GEO
+                        cp "${clientPartNumber[$i]}.[gG][eE][oO]" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
                     else
                         echo "File does not exist!!!"
+                        echo "Error, could not find a .GEO for:" $jobNumber"-"${ticketNumberArray[$i]} "-" ${clientPartNumberp[$i]} > "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
                     fi
 
                 else
-                    cp "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                    test -e "${clientPartNumber[$i]}_${revisionArray[$i]}.[gG][eE][oO]"
+                    if [[ $? == '0' ]]; then
+                        cp "${clientPartNumber[$i]}_${revisionArray[$i]}.[gG][eE][oO]" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                    else
+                        echo "File does not exist!!!"
+                        echo "Error, could not find a .GEO for:" $jobNumber"-"${ticketNumberArray[$i]} "-" ${clientPartNumber[$i]} "Revision" ${revisionArray[$i]} > "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                    fi
+
                 fi
 
             fi
