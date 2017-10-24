@@ -27,6 +27,7 @@ VARLEY_TOMAGO="/home/$USER/Network-Drives/U-Drive/VARLEYTGO"
 ###############################################
 # Defining where the customer GEO's are
 BUSTECH_GEOS="/home/$USER/Network-Drives/U-Drive/BUSTECH/ITMS DXF"
+LAI_SWITCHBAORDS_GEOS="/home/$USER/Network-Drives/U-Drive/LAISWITCHBOARDS/ITMS DXF"
 
 ###############################################
 # Defining where to copy the GEO's that are ready to nest
@@ -578,6 +579,7 @@ if [[ $GRAB_GEOS == "TRUE" ]]; then
 
         cd "$BUSTECH_GEOS"
         sleep 0.5
+        pwd
 
         echo "The customer is BUSTECH, have to replce '-' with an underscore '_' for each part..."
         for (( i=0; i<${arrayLength}; i++ ));
@@ -588,22 +590,34 @@ if [[ $GRAB_GEOS == "TRUE" ]]; then
                 clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
 
                 if [[ ${revisionArray[$i]} == "ORIG" ]]; then
-                    test -e "${clientPartNumber[$i]}.[gG][eE][oO]"
+                    test -e "${clientPartNumber[$i]}.GEO"
                     if [[ $? == '0' ]]; then
                       # the formatting of the cpoied part is currently as follows: 1 - 0026_01 - 12mm 250 GR - x6.GEO
-                        cp "${clientPartNumber[$i]}.[gG][eE][oO]" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                        cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
                     else
                         echo "File does not exist!!!"
-                        echo "Error, could not find a .GEO for:" $jobNumber"-"${ticketNumberArray[$i]} "-" ${clientPartNumberp[$i]} > "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                        echo -e "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                    fi
+
+                # testing if the revision string is empty
+                elif [[ -z "${revisionArray[$i]}" ]]; then
+                    # revision array variable is empty
+
+                    test -e "${clientPartNumber[$i]}.GEO"
+                    if [[ $? == '0' ]]; then
+                        cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                    else
+                        echo "File does not exist!!!"
+                        echo -e "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
                     fi
 
                 else
-                    test -e "${clientPartNumber[$i]}_${revisionArray[$i]}.[gG][eE][oO]"
+                    test -e "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO"
                     if [[ $? == '0' ]]; then
-                        cp "${clientPartNumber[$i]}_${revisionArray[$i]}.[gG][eE][oO]" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                        cp "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
                     else
                         echo "File does not exist!!!"
-                        echo "Error, could not find a .GEO for:" $jobNumber"-"${ticketNumberArray[$i]} "-" ${clientPartNumber[$i]} "Revision" ${revisionArray[$i]} > "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                        echo -e "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
                     fi
 
                 fi
@@ -611,6 +625,46 @@ if [[ $GRAB_GEOS == "TRUE" ]]; then
             fi
         done
     fi
+
+    if [[ $customerName == "LAI SWITCHBOARDS AUSTRALIA" ]]; then
+
+       cd "$LAI_SWITCHBAORDS_GEOS"
+       sleep 0.5
+       pwd
+
+       for (( i=0; i<${arrayLength}; i++ ));
+       do
+          if [[ ${processArray[$i]} == "3030 LASER 2" ]]; then
+              echo ${gciPartNumber[$i]} "is a 3030 LASER 2 part"
+
+              if [[ -z "${revisionArray[$i]}" ]]; then
+                  # revision array variable is empty
+
+                  test -e "${gciPartNumber[$i]}.GEO"
+                  if [[ $? == '0' ]]; then
+                      # '0' if file does exist
+                      cp "${gciPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                  else
+                      echo "File does not exist!!!"
+                      echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                  fi
+              else
+                  # revision array variable is not empty
+
+                  test -e "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO"
+                  if [[ $? == '0' ]]; then
+                      # '0' if files does exist
+                      cp "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                  else
+                      echo "File does not exist!!!"
+                      echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                  fi
+              fi
+          fi
+       done
+
+    fi
+
 fi
 
 # ###################################################################
