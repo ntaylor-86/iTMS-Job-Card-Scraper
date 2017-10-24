@@ -654,7 +654,7 @@ if [[ $GRAB_GEOS == "TRUE" ]]; then
                   test -e "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO"
                   if [[ $? == '0' ]]; then
                       # '0' if files does exist
-                      cp "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
+                      cp "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${gciPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
                   else
                       echo "File does not exist!!!"
                       echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
