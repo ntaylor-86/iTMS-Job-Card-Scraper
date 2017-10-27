@@ -22,6 +22,7 @@ ROTO_LST_READY_TO_NEST="/home/$USER/Network-Drives/T-Drive/7000 TUBE JOBS READY 
 BUSTECH="/home/$USER/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
 EXPRESS_COACH_BUILDERS="/home/$USER/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
 JJ_RICHARDS="/home/$USER/Network-Drives/U-Drive/JJRICHARDSENG"
+VARLEY_BNE="/home/$USER/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/home/$USER/Network-Drives/U-Drive/VARLEYTGO"
 
 ###############################################
@@ -458,6 +459,18 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         done
       fi
 
+      if [[ $customerName == "G H VARLEY - BNE" ]]; then
+          cd "$VARLEY_BNE"
+          pwd
+          sleep 1
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+            echo "PRINTY is going to print" ${clientPartNumber[$i]}
+            lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
+            sleep 5
+          done
+      fi
+
       if [[ $customerName == "G H VARLEY - TOMAGO (SCHOOL DRIVE)" ]]; then
         cd "$VARLEY_TOMAGO"
         pwd
@@ -481,40 +494,54 @@ if [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
 
   sleep 1
 
-  rotoPartArrayLength=${#rotoPartArray[@]}
-
-  echo "Starting to print the ROTO programs for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
-
   if [[ $isThereRotoParts == 'TRUE' ]]; then
-    echo "I have detected a disturbance in the force... And also ROTO programs in this job"
-    cd "$ROTO_PDF_FOLDER"
-    sleep 1
+      # printing the cover page
+      echo "Starting to print the ROTO programs for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
 
-    #########################################################################################
-    # if the customer is bustech, we have to replace the '-' in the client part code to '_'
-    #########################################################################################
-    if [[ $customerName == "BUSTECH" ]]; then
-        echo "The customer is BUSTECH, have to replace the '-' with an underscore '_' for each part..."
-        for (( i=0; i<${rotoPartArrayLength}; i++ ));
-        do
-            echo "Replacing the '-' in" ${rotoPartArray[$i]}
-            rotoPartArray[$i]=$(echo ${rotoPartArray[$i]//-/_})
-            echo "The '-' should now be replaced with an '_' " ${rotoPartArray[$i]}
-        done
-    fi
+      echo "I have detected a disturbance in the force... And also ROTO programs in this job"
+      cd "$ROTO_PDF_FOLDER"
+      sleep 1
 
-    echo $rotoPartArrayLength
-    pwd
-    for (( i=0; i<${#rotoPartArray[@]}; i++ ));
-    do
-      for j in $(find -type f -iname "${rotoPartArray[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
-        lp -o fit-to-page "$j"
-        sleep 5
-      done
-    done
+      #########################################################################################
+      # if the customer is bustech, we have to replace the '-' in the client part code to '_'
+      #########################################################################################
+      if [[ $customerName == "BUSTECH" ]]; then
+          echo "The customer is BUSTECH, have to replace the hyphen '-' with an underscore '_' for each part..."
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              if [[ ${processArray[$i]} == "ROTO 3030" ]]; then
+                  echo ${clientPartNumber[$i]} "is a ROTO 3030 part"
+                  echo "$jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - is a ROTO 3030 part" >>  "$ORIGINAL_FOLDER/$jobNumber.ROTO.log"
+                  echo "Have to turn the '-' in the client part code into an '_'"
+                  clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
+                  for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
+                      echo "Sending" "$j" "to PR1N7Y"
+                      lp -o fit-to-page "$j"
+                      sleep 5
+                  done
+              fi
+          done
+      else
+          # most of the customers ROTO programs are made using the GCI part number
+          echo "The customer is not BUSTECH, going to search for the ROTO pdf's using the GCI Part Number"
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              if [[ ${processArray[$i]} == "ROTO 3030" ]]; then
+                  echo ${gciPartNumber[$i]} "is a ROTO 3030 part"
+                  echo "$jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - is a ROTO 3030 part" >>  "$ORIGINAL_FOLDER/$jobNumber.ROTO.log"
+                  for j in $(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
+                      echo "Sending" "$j" "to PR1N7Y"
+                      lp -o fit-to-page "$j"
+                      sleep 5
+                  done
+              fi
+
+          done
+        fi
+
   else
-    echo "ERROR! There are no ROTO parts in this Job"
-    sleep 2
+      echo "ERROR! There are no ROTO parts in this Job"
+      sleep 2
   fi
 fi
 
@@ -531,37 +558,86 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
   cd "$ROTO_LST_FOLDER"
   sleep 0.5
 
-  rotoPartArrayLength=${#rotoPartArray[@]}
-
-  echo $customerName
-
   if [[ $customerName == "BUSTECH" ]]; then
+
       echo "The customer is BUSTECH, have to replace the '-' with an underscore '_' for each part..."
-      for (( i=0; i<${rotoPartArrayLength}; i++ ));
+      for (( i=0; i<${arrayLength}; i++ ));
       do
-          echo "Replacing the '-' in" ${rotoPartArray[$i]}
-          rotoPartArray[$i]=$(echo ${rotoPartArray[$i]//-/_})
-          echo "The '-' should now be replaced with an '_' " ${rotoPartArray[$i]}
+          if [[ ${processArray[$i]} == "ROTO 3030" ]]; then
+              echo ${clientPartNumber[$i]} "is a ROTO 3030 part"
+              echo "Have to turn the '-' in the client part code into an '_'"
+              clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
+
+                  if [[ -z "${revisionArray[$i]}" ]]; then
+                      # revision array variable is empty
+                      echo "The revision for this part is Empty"
+                      test -e "${clientPartNumber[$i]}.LST"
+                      if [[ $? == '0' ]]; then
+                          cp "${clientPartNumber[$i]}.LST" "$ROTO_LST_READY_TO_NEST/$jobNumber/$jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.LST"
+                          sleep 0.5
+                      else
+                          echo "File does not exist!!!"
+                          echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                      fi
+
+                  elif [[ ${revisionArray[$i]} == "ORIG" ]]; then
+                      echo "The revision for the part is ORIG"
+                      echo "Ignoring the revision for this part"
+                      test -e "${clientPartNumber[$i]}.LST"
+                      if [[ $? == '0' ]]; then
+                          cp "${clientPartNumber[$i]}.LST" "$ROTO_LST_READY_TO_NEST/$jobNumber/$jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.LST"
+                          sleep 0.5
+                      else
+                        echo "File does not exist!!!"
+                        echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                      fi
+
+                  else
+                      test -e "${clientPartNumber[$i]}_${revisionArray[$i]}.LST"
+                      if [[ $? == '0' ]]; then
+                          cp "${clientPartNumber[$i]}_${revisionArray[$i]}.LST" "$ROTO_LST_READY_TO_NEST/$jobNumber/$jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.LST"
+                          sleep 0.5
+                      else
+                          echo "File does not exist!!!"
+                          echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                      fi
+
+                  fi
+
+          fi
+      done
+  else
+      # most customers use the GCI part number as the ROTO program
+      for (( i=0; i<${arrayLength}; i++ ));
+      do
+          if [[ ${processArray[$i]} == "ROTO 3030" ]]; then
+              echo ${gciPartNumber[$i]} "is a ROTO 3030 part"
+
+              if [[ -z "${revisionArray[$i]}" ]]; then
+                  # revision array variable is empty
+                  echo "The revision for this part is empty"
+                  test -e "${gciPartNumber[$i]}.LST"
+                  if [[ $? == '0' ]]; then
+                      cp "${gciPartNumber[$i]}.LST" "$ROTO_LST_READY_TO_NEST/$jobNumber/$jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - "${materialCodeArray[$i]}" - x${qtyArray[$i]}.LST"
+                      sleep 0.5
+                  else
+                      echo "File does not exist!!!"
+                      echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}"
+                  fi
+              else
+                  test -e "${gciPartNumber[$i]}_${revisionArray[$i]}.LST"
+                  if [[ $? == '0' ]]; then
+                      cp "${gciPartNumber[$i]}_${revisionArray[$i]}.LST" "$ROTO_LST_READY_TO_NEST/$jobNumber/$jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - "${materialCodeArray[$i]}" - x${qtyArray[$i]}.LST"
+                      sleep 0.5
+                  else
+                      echo "File does not exist!!!"
+                      echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                  fi
+              fi
+          fi
       done
   fi
 
-  for (( i=0; i<${rotoPartArrayLength}; i++ ));
-  do
-    if [[ -z "${rotoPartRevision[$i]}" ]]; then
-      echo "The revision for this part is Empty"
-      cp "${rotoPartArray[$i]}.LST" "$ROTO_LST_READY_TO_NEST/$jobNumber/${rotoPartTicketNumberArray[$i]} - ${rotoPartArray[$i]}.LST"
-      sleep 0.5
-    elif [[ ${rotoPartRevision[$i]} == "ORIG" ]]; then
-      echo "The revision for the part is ORIG"
-      echo "Ignoring the revision for this part"
-      cp "${rotoPartArray[$i]}.LST" "$ROTO_LST_READY_TO_NEST/$jobNumber/${rotoPartTicketNumberArray[$i]} - ${rotoPartArray[$i]}.LST"
-      sleep 0.5
-    else
-      echo "Copying" ${rotoPartArray[$i]}"_"${rotoPartRevision[$i]}".LST"
-      cp "${rotoPartArray[$i]}_${rotoPartRevision[$i]}.LST" "$ROTO_LST_READY_TO_NEST/$jobNumber/${rotoPartTicketNumberArray[$i]} - ${rotoPartArray[$i]}_${rotoPartRevision[$i]}.LST"
-      sleep 0.5
-    fi
-  done
 fi
 
 #################################################################
@@ -596,7 +672,7 @@ if [[ $GRAB_GEOS == "TRUE" ]]; then
                         cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
                     else
                         echo "File does not exist!!!"
-                        echo -e "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
                     fi
 
                 # testing if the revision string is empty
@@ -608,16 +684,17 @@ if [[ $GRAB_GEOS == "TRUE" ]]; then
                         cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
                     else
                         echo "File does not exist!!!"
-                        echo -e "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
                     fi
 
+                # if the revision string is not empty
                 else
                     test -e "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO"
                     if [[ $? == '0' ]]; then
                         cp "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
                     else
                         echo "File does not exist!!!"
-                        echo -e "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
+                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
                     fi
 
                 fi
