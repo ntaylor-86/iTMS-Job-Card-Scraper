@@ -768,12 +768,12 @@ if [[ $CREATE_LABELS == "TRUE" ]]; then
     echo
     for (( i=0; i<${arrayLength}; i++ ));
     do
-        if [[ ${clientPartNumber[$i]} != "CUSTOMER LABEL" ]]; then
+        if [[ ${clientPartNumber[$i]} != "CUSTOMER-LABELS" ]]; then
               echo "${ticketNumberArray[$i]}, ${clientPartNumber[$i]}, ${qtyArray[$i]}" >> "$ORIGINAL_FOLDER/Labels/$jobNumber.csv"
         fi
     done
     echo "Creating the Labels .CSV is complete!"
-    echo "Open the 'Labels' to find $jobNumber.csv"
+    echo "Open the 'Labels' folder to find $jobNumber.csv"
 fi
 
 echo
