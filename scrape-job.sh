@@ -102,6 +102,7 @@ if [[ $OPTION == "1" ]]; then
 elif [[ $OPTION == "2" ]]; then
   echo "Print the existing ROTO PDF's selected!"
   PRINT_ROTO_PROGRAMS="TRUE"
+  CREATE_MATERIAL_ARRAY="TRUE"
   sleep 1
 elif [[ $OPTION == "3" ]]; then
   echo "Grab all the ROTO LST's selected!"
@@ -327,7 +328,7 @@ done
 ###############  Creating the Processs and Material Code Array  ################
 ################################################################################
 
-isThereRotoParts='FALSE'
+isThereRotoParts="FALSE"
 
 processArray=()
 materialCodeArray=()
@@ -367,7 +368,7 @@ if [[ $CREATE_MATERIAL_ARRAY == "TRUE" ]]; then
 
           processArray+=("ROTO 3030")
 
-          isThereRotoParts='TRUE'
+          isThereRotoParts="TRUE"
 
           # getting the material code for the 'ROTO 3030' part
           sed -n "$materialCodeLine p" "$fileName" | grep "Material Code" -q
@@ -508,7 +509,7 @@ if [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
 
   sleep 1
 
-  if [[ $isThereRotoParts == 'TRUE' ]]; then
+  if [[ $isThereRotoParts == "TRUE" ]]; then
       # printing the cover page
       echo "Starting to print the ROTO programs for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
 
