@@ -763,14 +763,18 @@ fi
 #################################################################
 
 if [[ $CREATE_LABELS == "TRUE" ]]; then
-
-    
-
+    echo
+    echo "Creating the labels .CSV now..."
+    echo
     for (( i=0; i<${arrayLength}; i++ ));
     do
         echo "${ticketNumberArray[$i]}, ${clientPartNumber[$i]}, ${qtyArray[$i]}" >> "$ORIGINAL_FOLDER/Labels/$jobNumber.csv"
     done
+    echo "Creating the Labels .CSV is complete!"
+    echo "Open the 'Labels' to find $jobNumber.csv"
 fi
+
+echo
 
 # ###################################################################
 # ###########  Moving the .txt file after working on it  ############
