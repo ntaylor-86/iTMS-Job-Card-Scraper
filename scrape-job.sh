@@ -767,6 +767,7 @@ if [[ $CREATE_LABELS == "TRUE" ]]; then
     echo
     echo "Creating the labels .CSV now..."
     echo
+    echo "Ticket Number, Part Number, Qty" >> "$ORIGINAL_FOLDER/Labels/$jobNumber.csv"
     for (( i=0; i<${arrayLength}; i++ ));
     do
         if [[ ${clientPartNumber[$i]} != "CUSTOMER-LABELS" ]]; then
