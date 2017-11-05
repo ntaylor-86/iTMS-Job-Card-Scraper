@@ -50,28 +50,18 @@ customerName=$(sed -n '2p' "$fileName")
 
 ###############################################################################################
 
-echo
-echo "             pN▒g▒p▒g▒▒g▒ge"
-echo "            ▒▒▒▒▒▒▒░░▒░▒░▒"
-echo "          _0▒░▒░▒░░▒▒▒▒▒▒!"
-echo "          4▒▒▒▒▒░░░▒░░▒▒▒▒▒Y"
-echo "          |\` ~~#00░░0▒MMM\"M|"
-echo "                \`gM░M7"
-echo "         |       00Q0       |"
-echo "         #▒____g▒0░░P______0"
-echo "         #▒0g_p#░░04▒▒&,__M#"
-echo "         0▒▒▒▒▒00   ]0▒▒▒▒00"
-echo "          |\j▒▒0'   '0▒▒▒4M'"
-echo "           |\#▒▒&▒▒gg▒▒0& |"
-echo "          \" ▒▒00▒▒▒▒00▒▒'d"
-echo "          %  ¼▒  ~P▒¼▒▒|¼¼|"
-echo "          M▒9▒,▒▒ ]▒] *▒j,g"
-echo "          l▒g▒▒] @▒9"
-echo "           ~▒0▒▒▒p ▒g▒"
-echo "             @░▒▒▒▒▒   ▒▒░"
-echo "              M0░░   ░░░^"
-echo "                \`"
-echo
+echo "$(tput setaf 2)
+       .~~.   .~~.
+      '. \ ' ' / .'$(tput setaf 1)
+       .~ .~~~..~.    $(tput sgr0)                                   _ $(tput setaf 1)
+      : .~.'~'.~. :   $(tput sgr0)    _____ _____ _____          ___|_|$(tput setaf 1)
+     ~ (   ) (   ) ~  $(tput sgr0)   |     |     |     |_ _ _   | . | |$(tput setaf 1)
+    ( : '~'.~.'~' : ) $(tput sgr0)   |_|_|_|_|_|_|_|_|_|_|_|_|  |  _|_|$(tput setaf 1)
+     ~ .~ (   ) ~. ~  $(tput sgr0)                              |_|    $(tput setaf 1)
+      (  : '~' :  )
+       '~ .~~~. ~'
+           '~'
+$(tput sgr0)"
 echo "   Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7_"
 echo
 
@@ -93,7 +83,7 @@ echo "  ║     5) Create Labels                    ║"
 echo "  ║     6) Test Mode                        ║"
 echo "  ╚═════════════════════════════════════════╝"
 echo
-read -p "   Enter an option Number: " OPTION
+read -p "   Please enter an option Number: " OPTION
 
 if [[ $OPTION == "1" ]]; then
   echo "Print the customers PDF's selected!"
@@ -429,11 +419,6 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
   echo "Starting to print the customer drawings for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
 
-      # tempFrontPage="./temp-files/$jobNumber-front-page-temp.txt"
-      # touch $tempFrontPage
-      # echo "Starting to print the drawings for customer:" $customerName "Job Number:" $jobNumber > $tempFrontPage
-      # lp -o fit-to-page "$tempFrontPage"
-
       if [[ $customerName == "EXPRESS COACH BUILDERS" ]]; then
         cd "$EXPRESS_COACH_BUILDERS"
         sleep 1
@@ -637,7 +622,7 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
                       sleep 0.5
                   else
                       echo "File does not exist!!!"
-                      echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}"
+                      echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR"
                   fi
               else
                   test -e "${gciPartNumber[$i]}_${revisionArray[$i]}.LST"
@@ -779,17 +764,3 @@ if [[ $CREATE_LABELS == "TRUE" ]]; then
 fi
 
 echo
-
-# ###################################################################
-# ###########  Moving the .txt file after working on it  ############
-# echo
-# echo "Moving" $fileName "into the ./Already-Processed/ folder"
-# cd "$ORIGINAL_FOLDER"
-# sleep 0.5
-# mv "./$fileName" ./Already-Processed/
-#
-# ##################################################################
-# #########################  Cleaning up  ##########################
-# echo
-# echo "Removing the TEMP files..."
-# rm "./temp-files/$tempFrontPage"
