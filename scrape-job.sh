@@ -5,7 +5,7 @@
 
 ###############################################
 # Defining the Original Start point for the program
-ORIGINAL_FOLDER="/home/$USER/Network-Drives/T-Drive/temp.bmt/Scripts/scrape txt file"
+ORIGINAL_FOLDER="/home/$USER/Network-Drives/T-Drive/iTMS-Job-Card-Scraper"
 
 ###############################################
 # Defining the 7000 TUBE PDF folder
