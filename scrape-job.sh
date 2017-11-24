@@ -5,34 +5,34 @@
 
 ###############################################
 # Defining the Original Start point for the program
-ORIGINAL_FOLDER="/home/$USER/Network-Drives/T-Drive/iTMS-Job-Card-Scraper"
+ORIGINAL_FOLDER="/mnt/Network-Drives/T-Drive/iTMS-Job-Card-Scraper"
 
 ###############################################
 # Defining the 7000 TUBE PDF folder
-ROTO_PDF_FOLDER="/home/$USER/Network-Drives/T-Drive/7000 TUBE PDF/"
+ROTO_PDF_FOLDER="/mnt/Network-Drives/T-Drive/7000 TUBE PDF/"
 
 ###############################################
 # Defining the 7000 TUBE lst folder
-ROTO_LST_FOLDER="/home/$USER/Network-Drives/T-Drive/7000 ROTO LST"
-ROTO_LST_READY_TO_NEST="/home/$USER/Network-Drives/T-Drive/7000 TUBE JOBS READY TO NEST"
+ROTO_LST_FOLDER="/mnt/Network-Drives/T-Drive/7000 ROTO LST"
+ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 TUBE JOBS READY TO NEST"
 
 ###############################################
 # Defining where the customer drawings are
 
-BUSTECH="/home/$USER/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
-EXPRESS_COACH_BUILDERS="/home/$USER/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
-JJ_RICHARDS="/home/$USER/Network-Drives/U-Drive/JJRICHARDSENG"
-VARLEY_BNE="/home/$USER/Network-Drives/U-Drive/VARLEYBNE"
-VARLEY_TOMAGO="/home/$USER/Network-Drives/U-Drive/VARLEYTGO"
+BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
+EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
+JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
+VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
+VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
 
 ###############################################
 # Defining where the customer GEO's are
-BUSTECH_GEOS="/home/$USER/Network-Drives/U-Drive/BUSTECH/ITMS DXF"
-LAI_SWITCHBAORDS_GEOS="/home/$USER/Network-Drives/U-Drive/LAISWITCHBOARDS/ITMS DXF"
+BUSTECH_GEOS="/mnt/Network-Drives/U-Drive/BUSTECH/ITMS DXF"
+LAI_SWITCHBAORDS_GEOS="/mnt/Network-Drives/U-Drive/LAISWITCHBOARDS/ITMS DXF"
 
 ###############################################
 # Defining where to copy the GEO's that are ready to nest
-GEO_READY_TO_NEST="/home/$USER/Network-Drives/U-Drive/Jobs-Ready-To-Nest"
+GEO_READY_TO_NEST="/mnt/Network-Drives/U-Drive/Jobs-Ready-To-Nest"
 
 ###############################################
 # Defining the thile to work on, $1 is the first argument passed when loading this script
@@ -415,6 +415,11 @@ done
 
 if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
+  echo "PRINT_CUSTOMER_PDFS variable is TRUE"
+  echo
+  echo $customerName
+  echo
+
   sleep 1
 
   echo "Starting to print the customer drawings for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
@@ -460,8 +465,12 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
       fi
 
       if [[ $customerName == "G H VARLEY - BNE" ]]; then
+          echo "The Customer is VARLEY BNE!!"
+          echo "Going to change into their directory..."
           cd "$VARLEY_BNE"
+          echo
           pwd
+          echo
           sleep 1
           for (( i=0; i<${arrayLength}; i++ ));
           do
