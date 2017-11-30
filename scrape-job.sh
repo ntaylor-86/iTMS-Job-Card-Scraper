@@ -500,7 +500,7 @@ fi
 ##########  Printing the existing roto pdf's  ##########
 ########################################################
 
-if [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
+if [[ $isThereRotoParts == "TRUE" ]] || [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
 
   sleep 1
 
@@ -553,7 +553,9 @@ if [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
       echo "ERROR! There are no ROTO parts in this Job"
       sleep 2
   fi
+
 fi
+
 
 ######################################################################
 ###########  Grabbing the ROTO lst's ready for Tube Nest  ############
