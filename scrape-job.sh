@@ -22,6 +22,7 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 TUBE JOBS READY TO NEST
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
 EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
 JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
+PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
 VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
 
@@ -431,6 +432,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         do
           # added double quotes around the find command, this solves the problem of spaces in the name/path of the pdf
           for j in "$(find -type f -iname "${clientPartNumber[$i]}*.pdf"  -not -path "./ARCHIVE/*")"; do
+            echo "PRINTY is going to print" $j
             lp -o fit-to-page "$j"
             sleep 5
           done
@@ -490,6 +492,20 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           echo "PRINTY is going to print" ${clientPartNumber[$i]}
           lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
           sleep 5
+        done
+      fi
+
+      if [[ $customerName == "PACE INNOVATIONS PTY LTD" ]]; then
+        cd "$PACEINNOVATION"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+          for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
+            echo "PRINTY is going to print" $j
+            lp -o fit-to-page "$j"
+            sleep 5
+          done
         done
       fi
 fi
