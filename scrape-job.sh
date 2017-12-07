@@ -581,6 +581,8 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
   echo $ROTO_LST_READY_TO_NEST"/"$jobNumber"/"
   mkdir "$ROTO_LST_READY_TO_NEST/$jobNumber"
 
+  hasThereBeenAnError="FALSE"
+
   cd "$ROTO_LST_FOLDER"
   sleep 0.5
 
@@ -603,7 +605,8 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
                           sleep 0.5
                       else
                           echo "File does not exist!!!"
-                          echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                          echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                          hasThereBeenAnError="TRUE"
                       fi
 
                   elif [[ ${revisionArray[$i]} == "ORIG" ]]; then
@@ -615,7 +618,8 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
                           sleep 0.5
                       else
                         echo "File does not exist!!!"
-                        echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                        echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                        hasThereBeenAnError="TRUE"
                       fi
 
                   else
@@ -625,7 +629,8 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
                           sleep 0.5
                       else
                           echo "File does not exist!!!"
-                          echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                          echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]} - ${materialCodeArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                          hasThereBeenAnError="TRUE"
                       fi
 
                   fi
@@ -648,7 +653,8 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
                       sleep 0.5
                   else
                       echo "File does not exist!!!"
-                      echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR"
+                      echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - ${materialCodeArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR"
+                      hasThereBeenAnError="TRUE"
                   fi
               else
                   test -e "${gciPartNumber[$i]}_${revisionArray[$i]}.LST"
@@ -657,11 +663,25 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
                       sleep 0.5
                   else
                       echo "File does not exist!!!"
-                      echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                      echo "Error, could not find a .LST for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]} - ${materialCodeArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+                      hasThereBeenAnError="TRUE"
                   fi
               fi
           fi
       done
+  fi
+
+  if [[ $hasThereBeenAnError == "TRUE" ]]; then
+    echo
+    echo "There has been an..."
+    echo " _____ ____  ____   ___  ____  "
+    echo "| ____|  _ \|  _ \ / _ \|  _ \ "
+    echo "|  _| | |_) | |_) | | | | |_) |"
+    echo "| |___|  _ <|  _ <| |_| |  _ < "
+    echo "|_____|_| \_|_| \_\\\\___/|_| \_\ "
+    echo
+    cat "$ORIGINAL_FOLDER/$jobNumber.copyRotoLST.ERROR.log"
+    echo
   fi
 
 fi
