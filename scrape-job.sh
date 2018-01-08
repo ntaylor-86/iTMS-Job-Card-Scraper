@@ -496,17 +496,25 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
       fi
 
       if [[ $customerName == "PACE INNOVATIONS PTY LTD" ]]; then
-        cd "$PACEINNOVATION"
-        pwd
-        sleep 1
-        for (( i=0; i<${arrayLength}; i++ ));
-        do
-          for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
-            echo "PRINTY is going to print" $j
-            lp -o fit-to-page "$j"
-            sleep 5
+          cd "$PACEINNOVATION"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+            #   for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
+            #     echo "PRINTY is going to print" $j
+            #     lp -o fit-to-page "$j"
+            #     sleep 5
+            #   done
+              while IFS= read -rd '' file <&3; do
+              	echo "PRINTY going to print" $file
+              	lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
           done
-        done
+
       fi
 fi
 
