@@ -51,19 +51,23 @@ customerName=$(sed -n '2p' "$fileName")
 
 ###############################################################################################
 
-echo "$(tput setaf 2)
-       .~~.   .~~.
-      '. \ ' ' / .'$(tput setaf 1)
-       .~ .~~~..~.    $(tput sgr0)                                   _ $(tput setaf 1)
-      : .~.'~'.~. :   $(tput sgr0)    _____ _____ _____          ___|_|$(tput setaf 1)
-     ~ (   ) (   ) ~  $(tput sgr0)   |     |     |     |_ _ _   | . | |$(tput setaf 1)
-    ( : '~'.~.'~' : ) $(tput sgr0)   |_|_|_|_|_|_|_|_|_|_|_|_|  |  _|_|$(tput setaf 1)
-     ~ .~ (   ) ~. ~  $(tput sgr0)                              |_|    $(tput setaf 1)
-      (  : '~' :  )
-       '~ .~~~. ~'
-           '~'
-$(tput sgr0)"
-echo "   Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7_"
+echo ""
+echo "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░"
+echo "░░░░░░░░░░▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄░░░░░░░░░"
+echo "░░░░░░░░▄▀░░░░░░░░░░░░▄░░░░░░░▀▄░░░░░░░"
+echo "░░░░░░░░█░░▄░░░░▄░░░░░░░░░░░░░░█░░░░░░░"
+echo "░░░░░░░░█░░░░░░░░░░░░▄█▄▄░░▄░░░█░▄▄▄░░░"
+echo "░▄▄▄▄▄░░█░░░░░░▀░░░░▀█░░▀▄░░░░░█▀▀░██░░"
+echo "░██▄▀██▄█░░░▄░░░░░░░██░░░░▀▀▀▀▀░░░░██░░"
+echo "░░▀██▄▀██░░░░░░░░▀░██▀░░░░░░░░░░░░░▀██░"
+echo "░░░░▀████░▀░░░░▄░░░██░░░▄█░░░░▄░▄█░░██░"
+echo "░░░░░░░▀█░░░░▄░░░░░██░░░░▄░░░▄░░▄░░░██░"
+echo "░░░░░░░▄█▄░░░░░░░░░░░▀▄░░▀▀▀▀▀▀▀▀░░▄▀░░"
+echo "░░░░░░█▀▀█████████▀▀▀▀████████████▀░░░░"
+echo "░░░░░░████▀░░███▀░░░░░░▀███░░▀██▀░░░░░░"
+echo "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░"
+echo ""
+echo " Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7_"
 echo
 
 ###############################################################################################
@@ -434,7 +438,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           for j in "$(find -type f -iname "${clientPartNumber[$i]}*.pdf"  -not -path "./ARCHIVE/*")"; do
             echo "PRINTY is going to print" $j
             lp -o fit-to-page "$j"
-            sleep 5
+            sleep 2
           done
         done
       fi
@@ -448,7 +452,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
             echo "PRINTY is going to print" $j
             lp -o fit-to-page "$j"
-            sleep 5
+            sleep 2
           done
         done
       fi
@@ -462,7 +466,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
             echo "PRINTY is going to print" $j
             lp -o fit-to-page -o page-right=25 "$j"
-            sleep 5
+            sleep 2
           done
         done
       fi
@@ -479,7 +483,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           do
             echo "PRINTY is going to print" ${clientPartNumber[$i]}
             lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
-            sleep 5
+            sleep 2
           done
       fi
 
@@ -491,7 +495,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         do
           echo "PRINTY is going to print" ${clientPartNumber[$i]}
           lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
-          sleep 5
+          sleep 2
         done
       fi
 
