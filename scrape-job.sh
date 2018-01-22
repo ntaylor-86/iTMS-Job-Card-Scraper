@@ -25,6 +25,7 @@ JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
 PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
 VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
+WEBER="/mnt/Network-Drives/U-Drive/WEBERSOUTHPACIFIC"
 
 ###############################################
 # Defining where the customer GEO's are
@@ -481,10 +482,18 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           sleep 1
           for (( i=0; i<${arrayLength}; i++ ));
           do
-            echo "PRINTY is going to print" ${clientPartNumber[$i]}
-            lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
-            sleep 2
+          #   echo "PRINTY is going to print" ${clientPartNumber[$i]}
+          #   lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
+          #   sleep 2
+          # done
+            while IFS= read -rd '' file <&3; do
+              echo "PRINTY going to print" $file
+              lp -o fit-to-page "$file"
+              sleep 2
+            done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
           done
+
       fi
 
       if [[ $customerName == "G H VARLEY - TOMAGO (SCHOOL DRIVE)" ]]; then
@@ -520,6 +529,24 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           done
 
       fi
+
+      if [[ $customerName == "WEBER SOUTH PACIFIC PTY LTD" ]]; then
+          cd "$WEBER"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
+      fi
+
 fi
 
 
