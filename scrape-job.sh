@@ -22,10 +22,13 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 TUBE JOBS READY TO NEST
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
 EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
 JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
+OFFROAD_RUSH="/mnt/Network-Drives/U-Drive/OFFROADRUSH"
 PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
+STEELROD="/mnt/Network-Drives/U-Drive/STEELROD"
 VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
 WEBER="/mnt/Network-Drives/U-Drive/WEBERSOUTHPACIFIC"
+
 
 ###############################################
 # Defining where the customer GEO's are
@@ -439,7 +442,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           for j in "$(find -type f -iname "${clientPartNumber[$i]}*.pdf"  -not -path "./ARCHIVE/*")"; do
             echo "PRINTY is going to print" $j
             lp -o fit-to-page "$j"
-            sleep 2
+            sleep 0.5
           done
         done
       fi
@@ -453,7 +456,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
             echo "PRINTY is going to print" $j
             lp -o fit-to-page "$j"
-            sleep 2
+            sleep 0.5
           done
         done
       fi
@@ -467,7 +470,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
             echo "PRINTY is going to print" $j
             lp -o fit-to-page -o page-right=25 "$j"
-            sleep 2
+            sleep 0.5
           done
         done
       fi
@@ -489,7 +492,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
             while IFS= read -rd '' file <&3; do
               echo "PRINTY going to print" $file
               lp -o fit-to-page "$file"
-              sleep 2
+              sleep 0.5
             done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
 
           done
@@ -504,8 +507,25 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         do
           echo "PRINTY is going to print" ${clientPartNumber[$i]}
           lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
-          sleep 2
+          sleep 0.5
         done
+      fi
+
+      if [[ $customerName == "OFFROAD RUSH" ]]; then
+          cd "$OFFROAD_RUSH"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 1
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
       fi
 
       if [[ $customerName == "PACE INNOVATIONS PTY LTD" ]]; then
@@ -523,7 +543,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
               while IFS= read -rd '' file <&3; do
               	echo "PRINTY going to print" $file
               	lp -o fit-to-page "$file"
-                sleep 2
+                sleep 0.5
               done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
 
           done
@@ -532,6 +552,23 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
       if [[ $customerName == "WEBER SOUTH PACIFIC PTY LTD" ]]; then
           cd "$WEBER"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 0.5
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
+      fi
+
+      if [[ $customerName == "STEELROD PTY LTD" ]]; then
+          cd "$STEELROD"
           pwd
           sleep 1
 
