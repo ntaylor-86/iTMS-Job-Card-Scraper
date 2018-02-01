@@ -720,6 +720,16 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
           if [[ ${processArray[$i]} == "ROTO 3030" ]]; then
               echo ${gciPartNumber[$i]} "is a ROTO 3030 part"
 
+              # There is some material in itms with a forward slash in it '/'
+              # bash really doesn't like it when this happens, so we have to remove them
+              echo "Checking if this Parts Material Code has a '/' in it"
+              if [[ ${materialCodeArray[$i]} = *"/"* ]]; then
+                echo "This Part Meterial Code does have a '/' in it"
+                echo "Chaning it now to a '_'"
+                materialCodeArray[$i]=$(echo ${materialCodeArray[$i]//\//_})
+              fi
+
+
               if [[ -z "${revisionArray[$i]}" ]]; then
                   # revision array variable is empty
                   echo "The revision for this part is empty"
