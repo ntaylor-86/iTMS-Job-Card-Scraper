@@ -25,6 +25,7 @@ JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
 OFFROAD_RUSH="/mnt/Network-Drives/U-Drive/OFFROADRUSH"
 PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
 STEELROD="/mnt/Network-Drives/U-Drive/STEELROD"
+SUN_ENGINEERING="/mnt/Network-Drives/U-Drive/SUNENG"
 VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
 WEBER="/mnt/Network-Drives/U-Drive/WEBERSOUTHPACIFIC"
@@ -179,40 +180,56 @@ done
 clientPartNumber=()
 for (( i=0; i<${arrayLength}; i++ ));
 do
-  # multi line Part Desciptions break where it looks for the Client Part Code
-  # to fix this, test if "Issue Date" is on a certain line
-  # if it's not a multi line part description, "Issue Date" should be (+5 lines) from $jobTickLineNumber
-  tempTicketNumber=${jobTickLineNumber[$i]}
-  issueDate=$(($tempTicketNumber + 5))
-  ticketNumber=$(( $i + 1 ))
+    # new customer SUN ENGINEERING, they have been entered into iTMS a bit weird
+    # instead of using the client part number field, the only reference to the part number
+    # is in the 'Part Description' field. The very first string of text is the client part number
+    # the rest of the text is cut away
+    if [[ $customerName == "SUN ENGINEERING" ]]; then
 
-  sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
-  if [[ $? == '1' ]]; then
-    oneLineAhead=$issueDate
-    counter=0
+        tempTicketNumber=${jobTickLineNumber[$i]}
+        # the part description is 4 lines down from the jobTickLineNumber variable
+        # this might have to change, depending if they are not multi line descriptions
+        partDescription=$(($tempTicketNumber + 4))
 
-    sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
-    while [[ $? == '1' ]]
-    do
-      ((oneLineAhead++))
-      ((counter++))
-      sed -n "$oneLineAhead p" "$fileName" | grep "Issue Date" -q
-    done
-    # echo "Job ticket line number =" $tempTicketNumber
-    tempValue=$(( $oneLineAhead - 2 ))
-    # echo "line number with the client part code is =" $tempValue
-    # sed -n "$tempValue p" "$fileName" | cut -f 2
-    clientPartNumber+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
-  else
-    # if Issue Date is on the right line it will act normally
-    tempTicketNumber=${jobTickLineNumber[$i]}
-    # echo "Job ticket line number =" $tempTicketNumber
-    tempValue=$(( $issueDate - 1 ))
-    # echo "line number with the client part code is =" $tempValue
-    # sed -n "$tempValue p" "$fileName" | cut -f 2
-    clientPartNumber+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
-  fi
-  echo "Loop number" $i
+        clientPartNumber+=($(sed -n "$partDescription p" "$fileName" | cut -f1 -d" "))
+
+    else
+        # multi line Part Desciptions break where it looks for the Client Part Code
+        # to fix this, test if "Issue Date" is on a certain line
+        # if it's not a multi line part description, "Issue Date" should be (+5 lines) from $jobTickLineNumber
+        tempTicketNumber=${jobTickLineNumber[$i]}
+        issueDate=$(($tempTicketNumber + 5))
+        ticketNumber=$(( $i + 1 ))
+
+        sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
+        if [[ $? == '1' ]]; then
+          oneLineAhead=$issueDate
+          counter=0
+
+          sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
+          while [[ $? == '1' ]]
+          do
+            ((oneLineAhead++))
+            ((counter++))
+            sed -n "$oneLineAhead p" "$fileName" | grep "Issue Date" -q
+          done
+          # echo "Job ticket line number =" $tempTicketNumber
+          tempValue=$(( $oneLineAhead - 2 ))
+          # echo "line number with the client part code is =" $tempValue
+          # sed -n "$tempValue p" "$fileName" | cut -f 2
+          clientPartNumber+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+        else
+          # if Issue Date is on the right line it will act normally
+          tempTicketNumber=${jobTickLineNumber[$i]}
+          # echo "Job ticket line number =" $tempTicketNumber
+          tempValue=$(( $issueDate - 1 ))
+          # echo "line number with the client part code is =" $tempValue
+          # sed -n "$tempValue p" "$fileName" | cut -f 2
+          clientPartNumber+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+        fi
+        echo "Loop number" $i
+    fi
+
 done
 
 
@@ -584,6 +601,23 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
                 lp -o fit-to-page "$file"
                 sleep 2
               done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
+      fi
+
+      if [[ $customerName == "SUN ENGINEERING" ]]; then
+          cd "$SUN_ENGINEERING"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
 
           done
 
