@@ -3,6 +3,41 @@
 # source txt file will have new line characters from windows
 # and that will break things real good
 
+
+echo
+echo "              .__        __             "
+echo " _____________|__| _____/  |_ ___.__.   "
+echo " \____ \_  __ \  |/    \   __<   |  |   "
+echo " |  |_> >  | \/  |   |  \  |  \___  |   "
+echo " |   __/|__|  |__|___|  /__|  / ____|   "
+echo " |__|                 \/      \/        "
+echo "      Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7  "
+echo
+
+###################################################
+#######    Defining the file to work on   #########
+###################################################
+
+# 'read' will read in what the user inputs | the '-p' flag will prompt | it saves the input into a variable called job_number
+read -p "  Please enter the Job Number: " job_number
+# the extension of the file exported from itms is '.txt'
+extension=".txt"
+# we add both variables together to make the fileName variable
+fileName=$job_number$extension
+
+# This is a test to see if the .txt file actaully exists before we continue
+if [[ ! -f $fileName ]]; then
+  echo
+  echo "What?!?!"
+  echo "I cannot find the Job Number you entered..."
+  echo "Did you export it from iTMS?"
+  echo
+  sleep 1
+  exit 0
+fi
+
+echo
+
 ###############################################
 # Defining the Original Start point for the program
 ORIGINAL_FOLDER="/mnt/Network-Drives/T-Drive/iTMS-Job-Card-Scraper"
@@ -41,10 +76,6 @@ LAI_SWITCHBAORDS_GEOS="/mnt/Network-Drives/U-Drive/LAISWITCHBOARDS/ITMS DXF"
 GEO_READY_TO_NEST="/mnt/Network-Drives/U-Drive/Jobs-Ready-To-Nest"
 
 ###############################################
-# Defining the thile to work on, $1 is the first argument passed when loading this script
-fileName=$1
-
-###############################################
 # dos2unix has to be the first command to execute before the script can start working on $fileName
 # removes all windows new line format so linux can work on it, -q = quiet mode
 
@@ -53,27 +84,6 @@ dos2unix -q "$fileName"
 ###############################################################################################
 # Getting the customer name, this assumes that the customer name is on line 2 of the txt file
 customerName=$(sed -n '2p' "$fileName")
-
-###############################################################################################
-
-echo ""
-echo "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░"
-echo "░░░░░░░░░░▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄░░░░░░░░░"
-echo "░░░░░░░░▄▀░░░░░░░░░░░░▄░░░░░░░▀▄░░░░░░░"
-echo "░░░░░░░░█░░▄░░░░▄░░░░░░░░░░░░░░█░░░░░░░"
-echo "░░░░░░░░█░░░░░░░░░░░░▄█▄▄░░▄░░░█░▄▄▄░░░"
-echo "░▄▄▄▄▄░░█░░░░░░▀░░░░▀█░░▀▄░░░░░█▀▀░██░░"
-echo "░██▄▀██▄█░░░▄░░░░░░░██░░░░▀▀▀▀▀░░░░██░░"
-echo "░░▀██▄▀██░░░░░░░░▀░██▀░░░░░░░░░░░░░▀██░"
-echo "░░░░▀████░▀░░░░▄░░░██░░░▄█░░░░▄░▄█░░██░"
-echo "░░░░░░░▀█░░░░▄░░░░░██░░░░▄░░░▄░░▄░░░██░"
-echo "░░░░░░░▄█▄░░░░░░░░░░░▀▄░░▀▀▀▀▀▀▀▀░░▄▀░░"
-echo "░░░░░░█▀▀█████████▀▀▀▀████████████▀░░░░"
-echo "░░░░░░████▀░░███▀░░░░░░▀███░░▀██▀░░░░░░"
-echo "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░"
-echo ""
-echo " Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7_"
-echo
 
 ###############################################################################################
 PRINT_CUSTOMER_PDFS="FALSE"
