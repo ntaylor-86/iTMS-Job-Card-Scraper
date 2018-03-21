@@ -3,6 +3,41 @@
 # source txt file will have new line characters from windows
 # and that will break things real good
 
+
+echo
+echo "              .__        __             "
+echo " _____________|__| _____/  |_ ___.__.   "
+echo " \____ \_  __ \  |/    \   __<   |  |   "
+echo " |  |_> >  | \/  |   |  \  |  \___  |   "
+echo " |   __/|__|  |__|___|  /__|  / ____|   "
+echo " |__|                 \/      \/        "
+echo "      Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7  "
+echo
+
+###################################################
+#######    Defining the file to work on   #########
+###################################################
+
+# 'read' will read in what the user inputs | the '-p' flag will prompt | it saves the input into a variable called job_number
+read -p "  Please enter the Job Number: " job_number
+# the extension of the file exported from itms is '.txt'
+extension=".txt"
+# we add both variables together to make the fileName variable
+fileName=$job_number$extension
+
+# This is a test to see if the .txt file actaully exists before we continue
+if [[ ! -f $fileName ]]; then
+  echo
+  echo "What?!?!"
+  echo "I cannot find the Job Number you entered..."
+  echo "Did you export it from iTMS?"
+  echo
+  sleep 1
+  exit 0
+fi
+
+echo
+
 ###############################################
 # Defining the Original Start point for the program
 ORIGINAL_FOLDER="/mnt/Network-Drives/T-Drive/iTMS-Job-Card-Scraper"
@@ -20,11 +55,20 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 TUBE JOBS READY TO NEST
 # Defining where the customer drawings are
 
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
+CONDAMINE_CAMPERS="/mnt/Network-Drives/U-Drive/CONDAMINECAMPERS"
 EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
 JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
+KIMBERLEY="/mnt/Network-Drives/U-Drive/KIMBERLYKAMPERS"
+OFFROAD_RUSH="/mnt/Network-Drives/U-Drive/OFFROADRUSH"
 PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
+SPEEDSAFE="/mnt/Network-Drives/U-Drive/SPEEDSAFE"
+STEELROD="/mnt/Network-Drives/U-Drive/STEELROD"
+SUN_ENGINEERING="/mnt/Network-Drives/U-Drive/SUNENG"
+TRITIUM="/mnt/Network-Drives/U-Drive/TRITIUM/PDFs CURRENT"
 VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
+WEBER="/mnt/Network-Drives/U-Drive/WEBERSOUTHPACIFIC"
+
 
 ###############################################
 # Defining where the customer GEO's are
@@ -36,10 +80,6 @@ LAI_SWITCHBAORDS_GEOS="/mnt/Network-Drives/U-Drive/LAISWITCHBOARDS/ITMS DXF"
 GEO_READY_TO_NEST="/mnt/Network-Drives/U-Drive/Jobs-Ready-To-Nest"
 
 ###############################################
-# Defining the thile to work on, $1 is the first argument passed when loading this script
-fileName=$1
-
-###############################################
 # dos2unix has to be the first command to execute before the script can start working on $fileName
 # removes all windows new line format so linux can work on it, -q = quiet mode
 
@@ -48,23 +88,6 @@ dos2unix -q "$fileName"
 ###############################################################################################
 # Getting the customer name, this assumes that the customer name is on line 2 of the txt file
 customerName=$(sed -n '2p' "$fileName")
-
-###############################################################################################
-
-echo "$(tput setaf 2)
-       .~~.   .~~.
-      '. \ ' ' / .'$(tput setaf 1)
-       .~ .~~~..~.    $(tput sgr0)                                   _ $(tput setaf 1)
-      : .~.'~'.~. :   $(tput sgr0)    _____ _____ _____          ___|_|$(tput setaf 1)
-     ~ (   ) (   ) ~  $(tput sgr0)   |     |     |     |_ _ _   | . | |$(tput setaf 1)
-    ( : '~'.~.'~' : ) $(tput sgr0)   |_|_|_|_|_|_|_|_|_|_|_|_|  |  _|_|$(tput setaf 1)
-     ~ .~ (   ) ~. ~  $(tput sgr0)                              |_|    $(tput setaf 1)
-      (  : '~' :  )
-       '~ .~~~. ~'
-           '~'
-$(tput sgr0)"
-echo "   Nathan's PR1N7Y th3 pr1n7 b07 SCR1P7_"
-echo
 
 ###############################################################################################
 PRINT_CUSTOMER_PDFS="FALSE"
@@ -79,9 +102,7 @@ echo "  ╔═══════════════════════
 echo "  ║     1) Print the Customers PDF's        ║"
 echo "  ║     2) Print the existing ROTO PDF's    ║"
 echo "  ║     3) Grab all the ROTO LST's          ║"
-echo "  ║     4) Grab all the GEO's               ║"
-echo "  ║     5) Create Labels                    ║"
-echo "  ║     6) Test Mode                        ║"
+echo "  ║     4) Test Mode                        ║"
 echo "  ╚═════════════════════════════════════════╝"
 echo
 read -p "   Please enter an option Number: " OPTION
@@ -101,15 +122,6 @@ elif [[ $OPTION == "3" ]]; then
   CREATE_MATERIAL_ARRAY="TRUE"
   sleep 1
 elif [[ $OPTION == "4" ]]; then
-  echo "Grab all the GEO's selected!"
-  GRAB_GEOS="TRUE"
-  CREATE_MATERIAL_ARRAY="TRUE"
-  sleep 1
-elif [[ $OPTION == "5" ]]; then
-  echo "Create Labels selected!"
-  CREATE_LABELS="TRUE"
-  sleep 1
-elif [[ $OPTION == "6" ]]; then
   echo "Test Mode selected!"
   TEST_MODE="TRUE"
   CREATE_MATERIAL_ARRAY="TRUE"
@@ -171,40 +183,56 @@ done
 clientPartNumber=()
 for (( i=0; i<${arrayLength}; i++ ));
 do
-  # multi line Part Desciptions break where it looks for the Client Part Code
-  # to fix this, test if "Issue Date" is on a certain line
-  # if it's not a multi line part description, "Issue Date" should be (+5 lines) from $jobTickLineNumber
-  tempTicketNumber=${jobTickLineNumber[$i]}
-  issueDate=$(($tempTicketNumber + 5))
-  ticketNumber=$(( $i + 1 ))
+    # new customer SUN ENGINEERING, they have been entered into iTMS a bit weird
+    # instead of using the client part number field, the only reference to the part number
+    # is in the 'Part Description' field. The very first string of text is the client part number
+    # the rest of the text is cut away
+    if [[ $customerName == "SUN ENGINEERING" ]]; then
 
-  sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
-  if [[ $? == '1' ]]; then
-    oneLineAhead=$issueDate
-    counter=0
+        tempTicketNumber=${jobTickLineNumber[$i]}
+        # the part description is 4 lines down from the jobTickLineNumber variable
+        # this might have to change, depending if they are not multi line descriptions
+        partDescription=$(($tempTicketNumber + 4))
 
-    sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
-    while [[ $? == '1' ]]
-    do
-      ((oneLineAhead++))
-      ((counter++))
-      sed -n "$oneLineAhead p" "$fileName" | grep "Issue Date" -q
-    done
-    # echo "Job ticket line number =" $tempTicketNumber
-    tempValue=$(( $oneLineAhead - 2 ))
-    # echo "line number with the client part code is =" $tempValue
-    # sed -n "$tempValue p" "$fileName" | cut -f 2
-    clientPartNumber+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
-  else
-    # if Issue Date is on the right line it will act normally
-    tempTicketNumber=${jobTickLineNumber[$i]}
-    # echo "Job ticket line number =" $tempTicketNumber
-    tempValue=$(( $issueDate - 1 ))
-    # echo "line number with the client part code is =" $tempValue
-    # sed -n "$tempValue p" "$fileName" | cut -f 2
-    clientPartNumber+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
-  fi
-  echo "Loop number" $i
+        clientPartNumber+=($(sed -n "$partDescription p" "$fileName" | cut -f1 -d" "))
+
+    else
+        # multi line Part Desciptions break where it looks for the Client Part Code
+        # to fix this, test if "Issue Date" is on a certain line
+        # if it's not a multi line part description, "Issue Date" should be (+5 lines) from $jobTickLineNumber
+        tempTicketNumber=${jobTickLineNumber[$i]}
+        issueDate=$(($tempTicketNumber + 5))
+        ticketNumber=$(( $i + 1 ))
+
+        sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
+        if [[ $? == '1' ]]; then
+          oneLineAhead=$issueDate
+          counter=0
+
+          sed -n "$issueDate p" "$fileName" | grep "Issue Date" -q
+          while [[ $? == '1' ]]
+          do
+            ((oneLineAhead++))
+            ((counter++))
+            sed -n "$oneLineAhead p" "$fileName" | grep "Issue Date" -q
+          done
+          # echo "Job ticket line number =" $tempTicketNumber
+          tempValue=$(( $oneLineAhead - 2 ))
+          # echo "line number with the client part code is =" $tempValue
+          # sed -n "$tempValue p" "$fileName" | cut -f 2
+          clientPartNumber+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+        else
+          # if Issue Date is on the right line it will act normally
+          tempTicketNumber=${jobTickLineNumber[$i]}
+          # echo "Job ticket line number =" $tempTicketNumber
+          tempValue=$(( $issueDate - 1 ))
+          # echo "line number with the client part code is =" $tempValue
+          # sed -n "$tempValue p" "$fileName" | cut -f 2
+          clientPartNumber+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+        fi
+        echo "Loop number" $i
+    fi
+
 done
 
 
@@ -434,7 +462,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           for j in "$(find -type f -iname "${clientPartNumber[$i]}*.pdf"  -not -path "./ARCHIVE/*")"; do
             echo "PRINTY is going to print" $j
             lp -o fit-to-page "$j"
-            sleep 5
+            sleep 0.5
           done
         done
       fi
@@ -448,8 +476,22 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
             echo "PRINTY is going to print" $j
             lp -o fit-to-page "$j"
-            sleep 5
+            sleep 0.5
           done
+        done
+      fi
+
+      if [[ $customerName == "CONDAMINE CAMPERS" ]]; then
+        cd "$CONDAMINE_CAMPERS"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            while IFS= read -rd '' file <&3; do
+              echo "PRINTY going to print" $file
+              lp -o fit-to-page "$file"
+              sleep 2
+            done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
         done
       fi
 
@@ -459,11 +501,30 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         sleep 1
         for (( i=0; i<${arrayLength}; i++ ));
         do
-          for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
-            echo "PRINTY is going to print" $j
-            lp -o fit-to-page -o page-right=25 "$j"
-            sleep 5
-          done
+            # for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
+            #   echo "PRINTY is going to print" $j
+            #   lp -o fit-to-page -o page-right=25 "$j"
+            #   sleep 0.5
+            # done
+            while IFS= read -rd '' file <&3; do
+              echo "PRINTY going to print" $file
+              lp -o fit-to-page "$file"
+              sleep 0.5
+            done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+        done
+      fi
+
+      if [[ $customerName == "KIMBERLEY KAMPERS" ]]; then
+        cd "$KIMBERLEY"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            while IFS= read -rd '' file <&3; do
+              echo "PRINTY going to print" $file
+              lp -o fit-to-page "$file"
+              sleep 2
+            done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
         done
       fi
 
@@ -477,10 +538,18 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           sleep 1
           for (( i=0; i<${arrayLength}; i++ ));
           do
-            echo "PRINTY is going to print" ${clientPartNumber[$i]}
-            lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
-            sleep 5
+          #   echo "PRINTY is going to print" ${clientPartNumber[$i]}
+          #   lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
+          #   sleep 2
+          # done
+            while IFS= read -rd '' file <&3; do
+              echo "PRINTY going to print" $file
+              lp -o fit-to-page "$file"
+              sleep 0.5
+            done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
           done
+
       fi
 
       if [[ $customerName == "G H VARLEY - TOMAGO (SCHOOL DRIVE)" ]]; then
@@ -491,8 +560,25 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         do
           echo "PRINTY is going to print" ${clientPartNumber[$i]}
           lp -o fit-to-page -o page-right=25 ${clientPartNumber[$i]}*.pdf
-          sleep 5
+          sleep 0.5
         done
+      fi
+
+      if [[ $customerName == "OFFROAD RUSH" ]]; then
+          cd "$OFFROAD_RUSH"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 1
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
       fi
 
       if [[ $customerName == "PACE INNOVATIONS PTY LTD" ]]; then
@@ -510,12 +596,98 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
               while IFS= read -rd '' file <&3; do
               	echo "PRINTY going to print" $file
               	lp -o fit-to-page "$file"
+                sleep 0.5
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
+      fi
+
+      if [[ $customerName == "WEBER SOUTH PACIFIC PTY LTD" ]]; then
+          cd "$WEBER"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 0.5
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
+      fi
+
+      if [[ $customerName == "SPEEDSAFE" ]]; then
+          cd "$SPEEDSAFE"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
+      fi
+
+      if [[ $customerName == "STEELROD PTY LTD" ]]; then
+          cd "$STEELROD"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          done
+
+      fi
+
+      if [[ $customerName == "SUN ENGINEERING" ]]; then
+          cd "$SUN_ENGINEERING"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
                 sleep 2
               done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
 
           done
 
       fi
+
+      if [[ $customerName == "TRITIUM PTY LTD" ]]; then
+          cd "$TRITIUM"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+          
+          done
+
+      fi
+
 fi
 
 
@@ -652,6 +824,16 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
           if [[ ${processArray[$i]} == "ROTO 3030" ]]; then
               echo ${gciPartNumber[$i]} "is a ROTO 3030 part"
 
+              # There is some material in itms with a forward slash in it '/'
+              # bash really doesn't like it when this happens, so we have to remove them
+              echo "Checking if this Parts Material Code has a '/' in it"
+              if [[ ${materialCodeArray[$i]} = *"/"* ]]; then
+                echo "This Part Meterial Code does have a '/' in it"
+                echo "Chaning it now to a '_'"
+                materialCodeArray[$i]=$(echo ${materialCodeArray[$i]//\//_})
+              fi
+
+
               if [[ -z "${revisionArray[$i]}" ]]; then
                   # revision array variable is empty
                   echo "The revision for this part is empty"
@@ -693,128 +875,3 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
   fi
 
 fi
-
-#################################################################
-#############  Grabbing the GEO's ready for Nest  ###############
-#################################################################
-
-if [[ $GRAB_GEOS == "TRUE" ]]; then
-    echo
-    echo "Going to copy all the GEO's that are ready to nest for this job to,"
-    echo $GEO_READY_TO_NEST"/"$jobNumber"/"
-    mkdir "$GEO_READY_TO_NEST/$jobNumber"
-    sleep 0.5
-
-    if [[ $customerName == "BUSTECH" ]]; then
-
-        cd "$BUSTECH_GEOS"
-        sleep 0.5
-        pwd
-
-        echo "The customer is BUSTECH, have to replce '-' with an underscore '_' for each part..."
-        for (( i=0; i<${arrayLength}; i++ ));
-        do
-            if [[ ${processArray[$i]} == "3030 LASER 2" ]]; then
-                echo ${clientPartNumber[$i]} "is a 3030 LASER 2 part"
-                echo "Have to turn the '-' in the client part code into an '_'"
-                clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
-
-                if [[ ${revisionArray[$i]} == "ORIG" ]]; then
-                    test -e "${clientPartNumber[$i]}.GEO"
-                    if [[ $? == '0' ]]; then
-                      # the formatting of the cpoied part is currently as follows: 1 - 0026_01 - 12mm 250 GR - x6.GEO
-                        cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                    else
-                        echo "File does not exist!!!"
-                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                    fi
-
-                # testing if the revision string is empty
-                elif [[ -z "${revisionArray[$i]}" ]]; then
-                    # revision array variable is empty
-
-                    test -e "${clientPartNumber[$i]}.GEO"
-                    if [[ $? == '0' ]]; then
-                        cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                    else
-                        echo "File does not exist!!!"
-                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                    fi
-
-                # if the revision string is not empty
-                else
-                    test -e "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO"
-                    if [[ $? == '0' ]]; then
-                        cp "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                    else
-                        echo "File does not exist!!!"
-                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                    fi
-
-                fi
-
-            fi
-        done
-    fi
-
-    if [[ $customerName == "LAI SWITCHBOARDS AUSTRALIA" ]]; then
-
-       cd "$LAI_SWITCHBAORDS_GEOS"
-       sleep 0.5
-       pwd
-
-       for (( i=0; i<${arrayLength}; i++ ));
-       do
-          if [[ ${processArray[$i]} == "3030 LASER 2" ]]; then
-              echo ${gciPartNumber[$i]} "is a 3030 LASER 2 part"
-
-              if [[ -z "${revisionArray[$i]}" ]]; then
-                  # revision array variable is empty
-
-                  test -e "${gciPartNumber[$i]}.GEO"
-                  if [[ $? == '0' ]]; then
-                      # '0' if file does exist
-                      cp "${gciPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                  else
-                      echo "File does not exist!!!"
-                      echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                  fi
-              else
-                  # revision array variable is not empty
-
-                  test -e "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO"
-                  if [[ $? == '0' ]]; then
-                      # '0' if files does exist
-                      cp "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${gciPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                  else
-                      echo "File does not exist!!!"
-                      echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                  fi
-              fi
-          fi
-       done
-
-    fi
-
-fi
-
-#################################################################
-###############   Creating the sticker labels   #################
-#################################################################
-
-if [[ $CREATE_LABELS == "TRUE" ]]; then
-    echo
-    echo "Creating the labels .CSV now..."
-    echo
-    echo "Ticket Number, Part Number, Qty" >> "$ORIGINAL_FOLDER/Labels/$jobNumber.csv"
-    for (( i=0; i<${arrayLength}; i++ ));
-    do
-        if [[ ${clientPartNumber[$i]} != "CUSTOMER-LABELS" ]]; then
-              echo "${ticketNumberArray[$i]}, ${clientPartNumber[$i]}, ${qtyArray[$i]}" >> "$ORIGINAL_FOLDER/Labels/$jobNumber.csv"
-        fi
-    done
-    echo "Creating the Labels .CSV is complete!"
-    echo "Open the 'Labels' folder to find $jobNumber.csv"
-fi
-
-echo
