@@ -29,9 +29,8 @@ $ cmod +x scrape-job.sh
 
 Once you have exported a job into a .txt format you can now run the script
 
-replace 'jobNumber.txt' with the file you exported from iTMS 
 
 ```
 Change into the directory where the script is located,
-$ ./scrape-job.sh jobNumber.txt
+$ ./scrape-job.sh
 ```
