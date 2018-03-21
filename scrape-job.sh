@@ -55,6 +55,7 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 TUBE JOBS READY TO NEST
 # Defining where the customer drawings are
 
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
+CONDAMINE_CAMPERS="/mnt/Network-Drives/U-Drive/CONDAMINECAMPERS"
 EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
 JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
 KIMBERLEY="/mnt/Network-Drives/U-Drive/KIMBERLYKAMPERS"
@@ -63,6 +64,7 @@ PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
 SPEEDSAFE="/mnt/Network-Drives/U-Drive/SPEEDSAFE"
 STEELROD="/mnt/Network-Drives/U-Drive/STEELROD"
 SUN_ENGINEERING="/mnt/Network-Drives/U-Drive/SUNENG"
+TRITIUM="/mnt/Network-Drives/U-Drive/TRITIUM/PDFs CURRENT"
 VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
 WEBER="/mnt/Network-Drives/U-Drive/WEBERSOUTHPACIFIC"
@@ -100,9 +102,7 @@ echo "  ╔═══════════════════════
 echo "  ║     1) Print the Customers PDF's        ║"
 echo "  ║     2) Print the existing ROTO PDF's    ║"
 echo "  ║     3) Grab all the ROTO LST's          ║"
-echo "  ║     4) Grab all the GEO's               ║"
-echo "  ║     5) Create Labels                    ║"
-echo "  ║     6) Test Mode                        ║"
+echo "  ║     4) Test Mode                        ║"
 echo "  ╚═════════════════════════════════════════╝"
 echo
 read -p "   Please enter an option Number: " OPTION
@@ -122,15 +122,6 @@ elif [[ $OPTION == "3" ]]; then
   CREATE_MATERIAL_ARRAY="TRUE"
   sleep 1
 elif [[ $OPTION == "4" ]]; then
-  echo "Grab all the GEO's selected!"
-  GRAB_GEOS="TRUE"
-  CREATE_MATERIAL_ARRAY="TRUE"
-  sleep 1
-elif [[ $OPTION == "5" ]]; then
-  echo "Create Labels selected!"
-  CREATE_LABELS="TRUE"
-  sleep 1
-elif [[ $OPTION == "6" ]]; then
   echo "Test Mode selected!"
   TEST_MODE="TRUE"
   CREATE_MATERIAL_ARRAY="TRUE"
@@ -490,6 +481,20 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         done
       fi
 
+      if [[ $customerName == "CONDAMINE CAMPERS" ]]; then
+        cd "$CONDAMINE_CAMPERS"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            while IFS= read -rd '' file <&3; do
+              echo "PRINTY going to print" $file
+              lp -o fit-to-page "$file"
+              sleep 2
+            done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+        done
+      fi
+
       if [[ $customerName == "JJ RICHARDS ENGINEERING PTY LTD" ]]; then
         cd "$JJ_RICHARDS"
         pwd
@@ -662,6 +667,23 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
                 sleep 2
               done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
 
+          done
+
+      fi
+
+      if [[ $customerName == "TRITIUM PTY LTD" ]]; then
+          cd "$TRITIUM"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+          
           done
 
       fi
@@ -853,128 +875,3 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
   fi
 
 fi
-
-#################################################################
-#############  Grabbing the GEO's ready for Nest  ###############
-#################################################################
-
-if [[ $GRAB_GEOS == "TRUE" ]]; then
-    echo
-    echo "Going to copy all the GEO's that are ready to nest for this job to,"
-    echo $GEO_READY_TO_NEST"/"$jobNumber"/"
-    mkdir "$GEO_READY_TO_NEST/$jobNumber"
-    sleep 0.5
-
-    if [[ $customerName == "BUSTECH" ]]; then
-
-        cd "$BUSTECH_GEOS"
-        sleep 0.5
-        pwd
-
-        echo "The customer is BUSTECH, have to replce '-' with an underscore '_' for each part..."
-        for (( i=0; i<${arrayLength}; i++ ));
-        do
-            if [[ ${processArray[$i]} == "3030 LASER 2" ]]; then
-                echo ${clientPartNumber[$i]} "is a 3030 LASER 2 part"
-                echo "Have to turn the '-' in the client part code into an '_'"
-                clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
-
-                if [[ ${revisionArray[$i]} == "ORIG" ]]; then
-                    test -e "${clientPartNumber[$i]}.GEO"
-                    if [[ $? == '0' ]]; then
-                      # the formatting of the cpoied part is currently as follows: 1 - 0026_01 - 12mm 250 GR - x6.GEO
-                        cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                    else
-                        echo "File does not exist!!!"
-                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                    fi
-
-                # testing if the revision string is empty
-                elif [[ -z "${revisionArray[$i]}" ]]; then
-                    # revision array variable is empty
-
-                    test -e "${clientPartNumber[$i]}.GEO"
-                    if [[ $? == '0' ]]; then
-                        cp "${clientPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                    else
-                        echo "File does not exist!!!"
-                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                    fi
-
-                # if the revision string is not empty
-                else
-                    test -e "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO"
-                    if [[ $? == '0' ]]; then
-                        cp "${clientPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${clientPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                    else
-                        echo "File does not exist!!!"
-                        echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} Revision ${revisionArray[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                    fi
-
-                fi
-
-            fi
-        done
-    fi
-
-    if [[ $customerName == "LAI SWITCHBOARDS AUSTRALIA" ]]; then
-
-       cd "$LAI_SWITCHBAORDS_GEOS"
-       sleep 0.5
-       pwd
-
-       for (( i=0; i<${arrayLength}; i++ ));
-       do
-          if [[ ${processArray[$i]} == "3030 LASER 2" ]]; then
-              echo ${gciPartNumber[$i]} "is a 3030 LASER 2 part"
-
-              if [[ -z "${revisionArray[$i]}" ]]; then
-                  # revision array variable is empty
-
-                  test -e "${gciPartNumber[$i]}.GEO"
-                  if [[ $? == '0' ]]; then
-                      # '0' if file does exist
-                      cp "${gciPartNumber[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                  else
-                      echo "File does not exist!!!"
-                      echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                  fi
-              else
-                  # revision array variable is not empty
-
-                  test -e "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO"
-                  if [[ $? == '0' ]]; then
-                      # '0' if files does exist
-                      cp "${gciPartNumber[$i]}_${revisionArray[$i]}.GEO" "$GEO_READY_TO_NEST/$jobNumber/${ticketNumberArray[$i]} - ${gciPartNumber[$i]}_${revisionArray[$i]} - ${materialCodeArray[$i]} - x${qtyArray[$i]}.GEO"
-                  else
-                      echo "File does not exist!!!"
-                      echo "Error, could not find a .GEO for: $jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]}" >> "$ORIGINAL_FOLDER/$jobNumber.ERROR.log"
-                  fi
-              fi
-          fi
-       done
-
-    fi
-
-fi
-
-#################################################################
-###############   Creating the sticker labels   #################
-#################################################################
-
-if [[ $CREATE_LABELS == "TRUE" ]]; then
-    echo
-    echo "Creating the labels .CSV now..."
-    echo
-    echo "Ticket Number, Part Number, Qty" >> "$ORIGINAL_FOLDER/Labels/$jobNumber.csv"
-    for (( i=0; i<${arrayLength}; i++ ));
-    do
-        if [[ ${clientPartNumber[$i]} != "CUSTOMER-LABELS" ]]; then
-              echo "${ticketNumberArray[$i]}, ${clientPartNumber[$i]}, ${qtyArray[$i]}" >> "$ORIGINAL_FOLDER/Labels/$jobNumber.csv"
-        fi
-    done
-    echo "Creating the Labels .CSV is complete!"
-    echo "Open the 'Labels' folder to find $jobNumber.csv"
-fi
-
-echo
