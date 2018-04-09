@@ -406,6 +406,31 @@ if [[ $CREATE_MATERIAL_ARRAY == "TRUE" ]]; then
               materialCodeArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 1)")
           fi
 
+        # testing from the jobTickLineNumber to $linesAhead if the part is a 'BANDSAW' part
+        elif (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep 'BANDSAW' -q); then
+            echo "This part has BANDSAW"
+
+            processArray+=("BANDSAW")
+
+            isThereRotoParts="TRUE"
+
+            # getting the material code for the 'ROTO 3030' part
+            sed -n "$materialCodeLine p" "$fileName" | grep "Material Code" -q
+            if [[ $? == '1' ]]; then
+                oneLineAhead=$materialCodeLine
+                echo "'Material Code' was not on the expected line, going to search the next line..."
+                sed -n "$materialCodeLine p" "$fileName" | grep "Material Code" -q
+                while [[ $? == '1' ]]; do
+                    ((oneLineAhead++))
+                    echo "Jumping to line" $oneLineAhead "to look for 'Material Code'"
+                    sed -n "$oneLineAhead p" "$fileName" | grep "Material Code" -q
+                done
+                echo "Success! found 'Material Code' on line" $oneLineAhead
+                tempValue=$(( $oneLineAhead + 1 ))
+                sed -n "$tempValue p" "$fileName" | cut -f 1
+                materialCodeArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 1)")
+            fi
+
       else
           # if the part is neither a LASER or ROTO part
           echo "This part is neither a LASER or ROTO part"
@@ -683,7 +708,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
                 lp -o fit-to-page "$file"
                 sleep 2
               done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
-          
+
           done
 
       fi
@@ -715,7 +740,8 @@ if [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
           echo "The customer is BUSTECH, have to replace the hyphen '-' with an underscore '_' for each part..."
           for (( i=0; i<${arrayLength}; i++ ));
           do
-              if [[ ${processArray[$i]} == "ROTO 3030" ]]; then
+              # added BANDSAW to the if statement as most BANDSAW are now cut on the ROTO
+              if [[ ${processArray[$i]} == "ROTO 3030" || ${processArray[$i]} == "BANDSAW" ]]; then
                   echo ${clientPartNumber[$i]} "is a ROTO 3030 part"
                   echo "$jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - is a ROTO 3030 part" >>  "$ORIGINAL_FOLDER/$jobNumber.ROTO.log"
                   echo "Have to turn the '-' in the client part code into an '_'"
@@ -732,7 +758,8 @@ if [[ $PRINT_ROTO_PROGRAMS == "TRUE" ]]; then
           echo "The customer is not BUSTECH, going to search for the ROTO pdf's using the GCI Part Number"
           for (( i=0; i<${arrayLength}; i++ ));
           do
-              if [[ ${processArray[$i]} == "ROTO 3030" ]]; then
+              # added BANDSAW to the if statement as most BANDSAW are now cut on the ROTO
+              if [[ ${processArray[$i]} == "ROTO 3030" || ${processArray[$i]} == "BANDSAW" ]]; then
                   echo ${gciPartNumber[$i]} "is a ROTO 3030 part"
                   echo "$jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - is a ROTO 3030 part" >>  "$ORIGINAL_FOLDER/$jobNumber.ROTO.log"
                   for j in $(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
