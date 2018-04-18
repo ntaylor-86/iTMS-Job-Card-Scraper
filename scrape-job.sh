@@ -483,12 +483,17 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         sleep 1
         for (( i=0; i<${arrayLength}; i++ ));
         do
-          # added double quotes around the find command, this solves the problem of spaces in the name/path of the pdf
-          for j in "$(find -type f -iname "${clientPartNumber[$i]}*.pdf"  -not -path "./ARCHIVE/*")"; do
-            echo "PRINTY is going to print" $j
-            lp -o fit-to-page "$j"
+          # # added double quotes around the find command, this solves the problem of spaces in the name/path of the pdf
+          # for j in "$(find -type f -iname "${clientPartNumber[$i]}*.pdf"  -not -path "./ARCHIVE/*")"; do
+          #   echo "PRINTY is going to print" $j
+          #   lp -o fit-to-page "$j"
+          #   sleep 0.5
+          # done
+          while IFS= read -rd '' file <&3; do
+            echo "PRINTY going to print" $file
+            lp -o fit-to-page "$file"
             sleep 0.5
-          done
+          done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
         done
       fi
 
