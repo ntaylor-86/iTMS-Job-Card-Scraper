@@ -57,6 +57,7 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 TUBE JOBS READY TO NEST
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
 CONDAMINE_CAMPERS="/mnt/Network-Drives/U-Drive/CONDAMINECAMPERS"
 EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
+HOLMWOOD="/mnt/Network-Drives/U-Drive/HOLMWOOD"
 JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
 KIMBERLEY="/mnt/Network-Drives/U-Drive/KIMBERLYKAMPERS"
 OFFROAD_RUSH="/mnt/Network-Drives/U-Drive/OFFROADRUSH"
@@ -490,7 +491,20 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           #   sleep 0.5
           # done
           while IFS= read -rd '' file <&3; do
-            echo "PRINTY going to print" $file
+            echo "PRINTY is going to print" $file
+            lp -o fit-to-page "$file"
+            sleep 0.5
+          done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+        done
+      fi
+
+      if [[ $customerName == "HOLMWOOD HIGHGATE (AUST) P/L" ]]; then
+        cd "$HOLMWOOD"
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+          while IFS= read -rd '' file <&3; do
+            echo "PRINTY is going to print" $file
             lp -o fit-to-page "$file"
             sleep 0.5
           done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
@@ -551,7 +565,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         for (( i=0; i<${arrayLength}; i++ ));
         do
             while IFS= read -rd '' file <&3; do
-              echo "PRINTY going to print" $file
+              echo "PRINTY is going to print" $file
               lp -o fit-to-page "$file"
               sleep 2
             done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
