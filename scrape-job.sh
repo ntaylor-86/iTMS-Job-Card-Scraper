@@ -65,6 +65,7 @@ PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
 SPEEDSAFE="/mnt/Network-Drives/U-Drive/SPEEDSAFE"
 STEELROD="/mnt/Network-Drives/U-Drive/STEELROD"
 SUN_ENGINEERING="/mnt/Network-Drives/U-Drive/SUNENG"
+TEST_CLIENT="/mnt/Network-Drives/U-Drive/TEST CLIENT"
 TRITIUM="/mnt/Network-Drives/U-Drive/TRITIUM/PDFs CURRENT"
 VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
@@ -468,6 +469,9 @@ done
 ############  Printing the client drawings  ############
 ########################################################
 
+missed_a_pdf="FALSE"
+missed_a_pdf_array=()
+
 if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
   echo "PRINT_CUSTOMER_PDFS variable is TRUE"
@@ -477,7 +481,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
   sleep 1
 
-  echo "Starting to print the customer drawings for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
+  # echo "Starting to print the customer drawings for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
 
       if [[ $customerName == "EXPRESS COACH BUILDERS" ]]; then
         cd "$EXPRESS_COACH_BUILDERS"
@@ -698,6 +702,31 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
       fi
 
+      if [[ $customerName == "TEST CLIENT" ]]; then
+        cd "$TEST_CLIENT"
+        sleep 1
+
+        for (( i = 0; i < ${arrayLength}; i++ )); do
+          echo
+          echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+          # testing if there is a pdf with the client part number
+          if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+            echo "Found a pdf using the GCI Part Number"
+            echo ${gciPartNumber[$i]}
+          elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+            echo "Found a pdf using the Customer Part Number"
+            echo ${clientPartNumber[$i]}
+          else
+            echo "Could not find a pdf at all."
+            missed_a_pdf="TRUE"
+            missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+          fi
+
+        done
+
+      fi
+
       if [[ $customerName == "SUN ENGINEERING" ]]; then
           cd "$SUN_ENGINEERING"
           pwd
@@ -731,6 +760,23 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           done
 
       fi
+
+fi
+
+if [[ $missed_a_pdf == "TRUE" ]]; then
+  echo
+  echo
+  echo -e "\e[91mThere has been an...\e[0m"
+  echo -e "\e[91m _____ ____  ____   ___  ____  \e[0m"
+  echo -e "\e[91m| ____|  _ \|  _ \ / _ \|  _ \ \e[0m"
+  echo -e "\e[91m|  _| | |_) | |_) | | | | |_) |\e[0m"
+  echo -e "\e[91m| |___|  _ <|  _ <| |_| |  _ < \e[0m"
+  echo -e "\e[91m|_____|_| \_|_| \_|\___/|_| \_\ \e[0m"
+  echo
+
+  for (( i = 0; i < ${#missed_a_pdf_array[@]}; i++ )); do
+    echo -e "\e[91mCould not find a pdf for\e[0m" "\e[91m${missed_a_pdf_array[$i]}\e[0m"
+  done
 
 fi
 
@@ -921,3 +967,6 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
   fi
 
 fi
+
+
+echo
