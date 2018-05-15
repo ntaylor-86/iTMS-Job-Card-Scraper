@@ -60,11 +60,14 @@ EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL 
 HOLMWOOD="/mnt/Network-Drives/U-Drive/HOLMWOOD"
 JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
 KIMBERLEY="/mnt/Network-Drives/U-Drive/KIMBERLYKAMPERS"
+LIQUIP="/mnt/Network-Drives/U-Drive/LIQUIP"
 OFFROAD_RUSH="/mnt/Network-Drives/U-Drive/OFFROADRUSH"
 PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
+RIPTIDE="/mnt/Network-Drives/U-Drive/RIPTIDE"
 SPEEDSAFE="/mnt/Network-Drives/U-Drive/SPEEDSAFE"
 STEELROD="/mnt/Network-Drives/U-Drive/STEELROD"
 SUN_ENGINEERING="/mnt/Network-Drives/U-Drive/SUNENG"
+TEST_CLIENT="/mnt/Network-Drives/U-Drive/TEST CLIENT"
 TRITIUM="/mnt/Network-Drives/U-Drive/TRITIUM/PDFs CURRENT"
 VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
@@ -446,7 +449,7 @@ fi
 
 
 ########################################################
-############  Echo Test of all the Arrays  #############
+############  echo Test of all the Arrays  #############
 ########################################################
 
 echo
@@ -467,6 +470,9 @@ done
 ########################################################
 ############  Printing the client drawings  ############
 ########################################################
+
+missed_a_pdf="FALSE"
+missed_a_pdf_array=()
 
 if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
@@ -517,11 +523,32 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         sleep 1
         for (( i=0; i<${arrayLength}; i++ ));
         do
-          for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
-            echo "PRINTY is going to print" $j
-            lp -o fit-to-page "$j"
-            sleep 0.5
-          done
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the client part number
+            if [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                # converting the pdf file to a post script file, so comments will get printed out
+                pdftops -paper A4 "$file"
+                # removing the '.pdf' extension
+                no_extension=${file%.pdf}
+                post_script_file="$no_extension.ps"
+                lp -o fit-to-page "$post_script_file"
+                sleep 2
+                rm "$post_script_file"
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo "Could not find a pdf at all."
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
         done
       fi
 
@@ -564,11 +591,81 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         sleep 1
         for (( i=0; i<${arrayLength}; i++ ));
         do
-            while IFS= read -rd '' file <&3; do
-              echo "PRINTY is going to print" $file
-              lp -o fit-to-page "$file"
-              sleep 2
-            done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo "Could not find a pdf at all."
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+        done
+      fi
+
+      if [[ $customerName == "LIQUIP SALES QLD" ]]; then
+        cd "$LIQUIP"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            # while IFS= read -rd '' file <&3; do
+            #   echo "PRINTY is going to print" $file
+            #   lp -o fit-to-page "$file"
+            #   sleep 2
+            # done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo "Could not find a pdf at all."
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
         done
       fi
 
@@ -647,6 +744,41 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
       fi
 
+      if [[ $customerName == "RIPTIDE CAMPERS" ]]; then
+          cd "$RIPTIDE"
+          pwd
+          sleep 1
+
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+              echo
+              echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+              if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+                echo "Found a pdf using the GCI Part Number"
+                echo ${gciPartNumber[$i]}
+                while IFS= read -rd '' file <&3; do
+                  echo "PRINTY going to print" $file
+                  lp -o fit-to-page "$file"
+                  sleep 2
+                done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+              elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+                echo "Found a pdf using the Customer Part Number"
+                echo ${clientPartNumber[$i]}
+                while IFS= read -rd '' file <&3; do
+                  echo "PRINTY going to print" $file
+                  lp -o fit-to-page "$file"
+                  sleep 2
+                done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+              else
+                echo "Could not find a pdf at all."
+                missed_a_pdf="TRUE"
+                missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+              fi
+
+          done
+
+      fi
+
       if [[ $customerName == "WEBER SOUTH PACIFIC PTY LTD" ]]; then
           cd "$WEBER"
           pwd
@@ -654,11 +786,35 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
           for (( i=0; i<${arrayLength}; i++ ));
           do
-              while IFS= read -rd '' file <&3; do
-                echo "PRINTY going to print" $file
-                lp -o fit-to-page "$file"
-                sleep 0.5
-              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+              # while IFS= read -rd '' file <&3; do
+              #   echo "PRINTY going to print" $file
+              #   lp -o fit-to-page "$file"
+              #   sleep 0.5
+              # done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+              echo
+              echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+              if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+                echo "Found a pdf using the GCI Part Number"
+                echo ${gciPartNumber[$i]}
+                while IFS= read -rd '' file <&3; do
+                  echo "PRINTY going to print" $file
+                  lp -o fit-to-page "$file"
+                  sleep 2
+                done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+              elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+                echo "Found a pdf using the Customer Part Number"
+                echo ${clientPartNumber[$i]}
+                while IFS= read -rd '' file <&3; do
+                  echo "PRINTY going to print" $file
+                  lp -o fit-to-page "$file"
+                  sleep 2
+                done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+              else
+                echo "Could not find a pdf at all."
+                missed_a_pdf="TRUE"
+                missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+              fi
 
           done
 
@@ -698,6 +854,41 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
       fi
 
+      if [[ $customerName == "TEST CLIENT" ]]; then
+        cd "$TEST_CLIENT"
+        sleep 1
+
+        for (( i = 0; i < ${arrayLength}; i++ )); do
+          echo
+          echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+          # testing if there is a pdf with the client part number
+          if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+            echo "Found a pdf using the GCI Part Number"
+            echo ${gciPartNumber[$i]}
+            while IFS= read -rd '' file <&3; do
+              echo "PRINTY going to print" $file
+              lp -o fit-to-page "$file"
+              sleep 2
+            done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+          elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+            echo "Found a pdf using the Customer Part Number"
+            echo ${clientPartNumber[$i]}
+            while IFS= read -rd '' file <&3; do
+              echo "PRINTY going to print" $file
+              lp -o fit-to-page "$file"
+              sleep 2
+            done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+          else
+            echo "Could not find a pdf at all."
+            missed_a_pdf="TRUE"
+            missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+          fi
+
+        done
+
+      fi
+
       if [[ $customerName == "SUN ENGINEERING" ]]; then
           cd "$SUN_ENGINEERING"
           pwd
@@ -731,6 +922,23 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           done
 
       fi
+
+fi
+
+if [[ $missed_a_pdf == "TRUE" ]]; then
+  echo
+  echo
+  echo -e "\e[91mThere has been an...\e[0m"
+  echo -e "\e[91m _____ ____  ____   ___  ____  \e[0m"
+  echo -e "\e[91m| ____|  _ \|  _ \ / _ \|  _ \ \e[0m"
+  echo -e "\e[91m|  _| | |_) | |_) | | | | |_) |\e[0m"
+  echo -e "\e[91m| |___|  _ <|  _ <| |_| |  _ < \e[0m"
+  echo -e "\e[91m|_____|_| \_|_| \_|\___/|_| \_\ \e[0m"
+  echo
+
+  for (( i = 0; i < ${#missed_a_pdf_array[@]}; i++ )); do
+    echo -e "\e[91mCould not find a pdf for\e[0m" "\e[91m${missed_a_pdf_array[$i]}\e[0m"
+  done
 
 fi
 
@@ -921,3 +1129,6 @@ if [[ $GRAB_ROTO_LSTs == "TRUE" ]]; then
   fi
 
 fi
+
+
+echo
