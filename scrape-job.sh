@@ -91,7 +91,12 @@ dos2unix -q "$fileName"
 
 ###############################################################################################
 # Getting the customer name, this assumes that the customer name is on line 2 of the txt file
-customerName=$(sed -n '2p' "$fileName")
+# SEVA breaks the whole Customer Name on line 2 thing
+if [[ $(sed -n '2p' "$fileName") == "SEVA - SPECIALISED & EMERGENCY VEHICLES" ]]; then
+  customerName="SEVA"
+else
+  customerName=$(sed -n '2p' "$fileName")
+fi
 
 ###############################################################################################
 PRINT_CUSTOMER_PDFS="FALSE"
@@ -140,7 +145,13 @@ fi
 echo "The customer name is:" $customerName
 
 # getting the job, this assumes that the job number is on line 3 of the txt file
-jobNumber=$(sed -n '3p' "$fileName")
+# Seva breaks this again, it will move to line 4
+if [[ $customerName == "SEVA" ]]; then
+  jobNumber=$(sed -n '4p' "$fileName")
+else
+  jobNumber=$(sed -n '3p' "$fileName")
+fi
+
 jobNumber=${jobNumber%%-*}
 jobNumber=${jobNumber#\*}
 
