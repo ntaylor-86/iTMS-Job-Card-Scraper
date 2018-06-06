@@ -49,7 +49,7 @@ ROTO_PDF_FOLDER="/mnt/Network-Drives/T-Drive/7000 TUBE PDF/"
 ###############################################
 # Defining the 7000 TUBE lst folder
 ROTO_LST_FOLDER="/mnt/Network-Drives/T-Drive/7000 ROTO LST"
-ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 TUBE JOBS READY TO NEST"
+ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 ROTO LST/7000 TUBE JOBS READY TO NEST"
 
 ###############################################
 # Defining where the customer drawings are
