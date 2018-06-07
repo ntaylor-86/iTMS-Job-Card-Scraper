@@ -110,13 +110,14 @@ GRAB_GEOS="FALSE"
 CREATE_LABELS="FALSE"
 CREATE_MATERIAL_ARRAY="FALSE"
 
-echo "  ╔════════════════════════════════════════════════════════════╗"
-echo "  ║     1) Print the Customers PDF's                           ║"
-echo "  ║     2) Print the existing ROTO PDF's                       ║"
-echo "  ║     3) Grab all the ROTO LST's                             ║"
-echo "  ║     4) Test Mode                                           ║"
-echo "  ║     5) Print DWG and ROTO at once (BUSTECH ONLY FOR NOW!)  ║"
-echo "  ╚════════════════════════════════════════════════════════════╝"
+echo "  ╔════════════════════════════════════════════════════════╗"
+echo "  ║     1) Print the Customers PDF's                       ║"
+echo "  ║     2) Print the existing ROTO PDF's                   ║"
+echo "  ║     3) Grab all the ROTO LST's                         ║"
+echo "  ║     4) Test Mode                                       ║"
+echo "  ║     5) Print DWG and ROTO pdf at once...               ║"
+echo "  ║           >> (BUSTECH and EXPRESS ONLY!)               ║"
+echo "  ╚════════════════════════════════════════════════════════╝"
 echo
 read -p "   Please enter an option Number: " OPTION
 
@@ -534,6 +535,7 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
             missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
         fi
 
+        # going to try and print the ROTO program PDF
         if [[ ${processArray[$i]} == "ROTO 3030" || ${processArray[$i]} == "BANDSAW" ]]; then
             cd "$ROTO_PDF_FOLDER"
             sleep 0.5
@@ -549,6 +551,57 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
         fi
 
     done
+
+  if [[ $customerName == "EXPRESS COACH BUILDERS" && $isThereRotoParts == "TRUE" ]]; then
+
+      sleep 1
+
+      for (( i=0; i<${arrayLength}; i++ ));
+      do
+
+          cd $EXPRESS_COACH_BUILDERS
+          sleep 0.5
+
+          echo
+          echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+          # testing if there is a pdf with the client part number
+          if [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                # converting the pdf file to a post script file, so comments will get printed out
+                pdftops -paper A4 "$file"
+                # removing the '.pdf' extension
+                no_extension=${file%.pdf}
+                post_script_file="$no_extension.ps"
+                lp -o fit-to-page "$post_script_file"
+                sleep 2
+                rm "$post_script_file"
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo "Could not find a pdf at all."
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+          fi
+
+          # going to try and print the ROTO pdf program
+          if [[ ${processArray[$i]} == "ROTO 3030" || ${processArray[$i]} == "BANDSAW" ]]; then
+              echo ${gciPartNumber[$i]} "is a ROTO 3030 part"
+              echo "$jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - is a ROTO 3030 part" >>  "$ORIGINAL_FOLDER/$jobNumber.ROTO.log"
+              for j in $(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
+                  echo "Sending" "$j" "to PR1N7Y"
+                  lp -o fit-to-page "$j"
+                  sleep 5
+              done
+          fi
+
+      done
+
+  fi
 
 
 
