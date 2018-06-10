@@ -496,7 +496,8 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
 
   echo "PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS variable is TRUE"
   echo
-  echo $customerName
+  echo "variable customerName: $customerName"
+  echo "variable isThereRotoParts: $isThereRotoParts"
   echo
 
   if [[ $customerName == "BUSTECH" && $isThereRotoParts == "TRUE" ]]; then
@@ -520,8 +521,15 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
               echo "PRINTY going to print" $file
               # converting the pdf file to a post script file, so comments will get printed out
               pdftops -paper A4 "$file"
-              # removing the '.pdf' extension
-              no_extension=${file%.pdf}
+
+              # removing the pdf extension
+              # checking if the extension (.pdf) is UPPER CASE or lower case
+              if [[ "$file" == *PDF  ]]; then
+                  no_extension=${file%.PDF}
+              else
+                  no_extension=${file%.pdf}
+              fi
+              
               post_script_file="$no_extension.ps"
               lp -o fit-to-page "$post_script_file"
               sleep 2
@@ -550,16 +558,19 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
             done
         fi
 
-    done
+      done
+  fi
 
   if [[ $customerName == "EXPRESS COACH BUILDERS" && $isThereRotoParts == "TRUE" ]]; then
 
       sleep 1
 
+      echo "Entered the 'if' statement, if customer=express && isthereroto=true"
+
       for (( i=0; i<${arrayLength}; i++ ));
       do
 
-          cd $EXPRESS_COACH_BUILDERS
+          cd "$EXPRESS_COACH_BUILDERS"
           sleep 0.5
 
           echo
@@ -573,8 +584,15 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
                 echo "PRINTY going to print" $file
                 # converting the pdf file to a post script file, so comments will get printed out
                 pdftops -paper A4 "$file"
-                # removing the '.pdf' extension
-                no_extension=${file%.pdf}
+
+                # removing the pdf extension
+                # checking if the extension (.pdf) is UPPER CASE or lower case
+                if [[ "$file" == *PDF  ]]; then
+                    no_extension=${file%.PDF}
+                else
+                    no_extension=${file%.pdf}
+                fi
+
                 post_script_file="$no_extension.ps"
                 lp -o fit-to-page "$post_script_file"
                 sleep 2
@@ -590,6 +608,8 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
 
           # going to try and print the ROTO pdf program
           if [[ ${processArray[$i]} == "ROTO 3030" || ${processArray[$i]} == "BANDSAW" ]]; then
+              cd "$ROTO_PDF_FOLDER"
+              sleep 0.5
               echo ${gciPartNumber[$i]} "is a ROTO 3030 part"
               echo "$jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - is a ROTO 3030 part" >>  "$ORIGINAL_FOLDER/$jobNumber.ROTO.log"
               for j in $(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
@@ -600,10 +620,6 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
           fi
 
       done
-
-  fi
-
-
 
   fi
 
