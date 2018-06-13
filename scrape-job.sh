@@ -56,6 +56,7 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 ROTO LST/7000 TUBE JOBS
 
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
 CONDAMINE_CAMPERS="/mnt/Network-Drives/U-Drive/CONDAMINECAMPERS"
+CEDAR_CREEK="/mnt/Network-Drives/U-Drive/CEDARCREEKCOMPANY"
 DAVCO="/mnt/Network-Drives/U-Drive/DAVCO"
 EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
 GEMCUTS="/mnt/Network-Drives/U-Drive/GEMCUTS"
@@ -320,7 +321,18 @@ do
             # Usually if 'Order Qty' is not two lines down form 'Issue Date' the gciPartNumber and Revision is two lines up from 'Order Qty'
             tempValue=$(( $oneLineAhead - 2 ))
             gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
-            revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+
+            # testing the number of tabs on the current line number, OFFR was pulling in the GCI part code for the rev
+            # testing if the line in the txt file is greater than one to see if this stops this behaviour
+            string=$(sed -n "$tempValue p" "$fileName")
+            number_of_tabs=$(echo "$string" | awk '{print gsub(/\t/,"")}')
+            number_of_tabs=$(($number_of_tabs + 1))
+            if [[ $number_of_tabs -gt 1 ]]; then  # if number of tabs is greater than 1
+              revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+            else
+              revisionArray+=("")
+            fi
+
             manufactureQtyLine=$(( $oneLineAhead + 1 ))
             qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
 
@@ -487,6 +499,18 @@ do
   echo "Ticket Number" $jobNumber"-"${ticketNumberArray[$i]}
   echo "GCI Part Number:" ${gciPartNumber[$i]}
   echo "Client Part Code:" ${clientPartNumber[$i]}
+
+  # testing the string length
+  string="${clientPartNumber[$i]}"
+  string_length=${#string}
+  if [[ $string_length -le 7 ]]; then
+    echo -e $RED_WITH_WHITE"string_length is less than 7"$DEFAULT
+  else
+    echo "string_length is greater than 7"
+  fi
+
+  echo "String Length:" $string_length
+
   echo "Revision:" ${revisionArray[$i]}
   echo "Qty:" ${qtyArray[$i]}
   echo "Process:" ${processArray[$i]}
@@ -521,9 +545,9 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
         echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
 
         # testing the character length of the part
-        string=${clientPartNumber[$i]}
-        if [[ ${#string} < 8 ]]; then  # testing if the string is less than 8 characters long
-          echo $RED_WITH_WHITE"$string is less than 8 characters long!"$DEFAULT
+        string="${clientPartNumber[$i]}"
+        if [[ "${#string}" -le 7 ]]; then  # testing if the string is less than 8 characters long
+          echo -e $RED_WITH_WHITE"$string is less than 7 characters long!"$DEFAULT
           continue  # this forces the loop to jump to the next iteration
         fi
 
@@ -700,9 +724,10 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
             echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
 
             # testing the character length of the part
-            string=${clientPartNumber[$i]}
-            if [[ ${#string} < 8 ]]; then  # testing if the string is less than 8 characters long
-              echo $RED_WITH_WHITE"$string is less than 8 characters long!"$DEFAULT
+            string="${clientPartNumber[$i]}"
+            string_length=${#string}
+            if [[ $string_length -le 7 ]]; then  # testing if the string is less than 8 characters long
+              echo -e $RED_WITH_WHITE"$string is less than 7 characters long!"$DEFAULT
               continue  # this forces the loop to jump to the next iteration
             fi
 
@@ -711,7 +736,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
               echo "Found a pdf using the Customer Part Number"
               echo ${clientPartNumber[$i]}
               while IFS= read -rd '' file <&3; do
-                echo "PRINTY going to print" $file
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file$DEFAULT
                 # converting the pdf file to a post script file, so comments will get printed out
                 pdftops -paper A4 "$file"
                 # removing the '.pdf' extension
@@ -724,7 +749,47 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
             # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
             else
-              echo "Could not find a pdf at all."
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all."$DEFAULT
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+        done
+      fi
+
+      if [[ $customerName == "CEDAR CREEK COMPANY PTY LTD" ]]; then
+        echo "Entered into the CEDAR CREEK if statement"
+        cd "$CEDAR_CREEK"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all." $DEFAULT
               missed_a_pdf="TRUE"
               missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
             fi
