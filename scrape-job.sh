@@ -531,6 +531,10 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
   echo "variable isThereRotoParts: $isThereRotoParts"
   echo
 
+  sleep 1
+
+  echo "Starting to print the customer drawings for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
+
   if [[ $customerName == "BUSTECH" && $isThereRotoParts == "TRUE" ]]; then
 
       sleep 1
