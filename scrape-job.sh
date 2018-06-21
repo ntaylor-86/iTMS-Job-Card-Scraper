@@ -400,7 +400,7 @@ if [[ $CREATE_MATERIAL_ARRAY == "TRUE" ]]; then
   for (( i=0; i<${arrayLength}; i++ ));
   do
       linesAhead=$(( ${jobTickLineNumber[$i]} + 35 ))
-      materialCodeLine=$(( ${jobTickLineNumber[$i]} + 20 ))
+      materialCodeLine=$(( ${jobTickLineNumber[$i]} + 16 ))
 
       # testing from the jobTickLineNumber to $linesAhead if the part is a '3030 LASER' part
       if (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep '3030 LASER 2' -q); then
