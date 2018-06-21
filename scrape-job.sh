@@ -922,6 +922,13 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
             echo
             echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
 
+            ## Kimberley Kampers has such a short part number that it returns a lot of unwanted results
+            ## e.g. KK175, will return KK1750, KK1751, KK1752 etc etc
+            ## going to try and fix this with ($part_number + [space_character]) & ($part_number + [underscore_character])
+            client_part_number="${clientPartNumber[$i]}"
+            # client_part_number_plus_space="$client_part_number "
+            client_part_number_plus_underscore=$client_part_number"_"
+
             # testing if there is a pdf with the GCI part number
             if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
               echo "Found a pdf using the GCI Part Number"
@@ -932,15 +939,25 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
                 sleep 2
               done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
 
-            # testing if there is a pdf with the client part number
-            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+            # testing if there is a pdf with the (client part number + [space_character])
+            elif [[ $(find -type f -iname "$client_part_number *.pdf" | wc -l) > 0 ]]; then
               echo "Found a pdf using the Customer Part Number"
               echo ${clientPartNumber[$i]}
               while IFS= read -rd '' file <&3; do
                 echo "PRINTY going to print" $file
                 lp -o fit-to-page "$file"
                 sleep 2
-              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+              done 3< <(find -type f -iname "$client_part_number *.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the ($client_part_number + [underscore_character])
+          elif [[ $(find -type f -iname "$client_part_number_plus_underscore*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "$client_part_number_plus_underscore*.pdf" -not -path "./ARCHIVE/*" -print0)
 
             # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
             else
