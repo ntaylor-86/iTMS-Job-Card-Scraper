@@ -329,8 +329,11 @@ do
             number_of_tabs=$(echo "$string" | awk '{print gsub(/\t/,"")}')
             number_of_tabs=$(($number_of_tabs + 1))
             if [[ $number_of_tabs -gt 1 ]]; then  # if number of tabs is greater than 1
+              temp_revision=$(sed -n "$tempValue p" "$fileName" | cut -f 2)
+              echo "Adding $temp_revision to the revision array"
               revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
             else
+              echo "adding a blank entry into the revision array"
               revisionArray+=("")
             fi
 
@@ -370,7 +373,22 @@ do
             # Usually if 'Order Qty' is not two lines down form 'Issue Date' the gciPartNumber and Revision is two lines up from 'Order Qty'
             tempValue=$(( $oneLineAhead - 2 ))
             gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
-            revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+
+            ## testing the number of tabs on the current line, PROJECT MODULAR and others were pulling in the part number as the revision
+            ## this test should stop this behaviour, will see how it goes.
+            string=$(sed -n "$tempValue p" "$fileName")
+            number_of_tabs=$(echo "$string" | awk '{print gsub(/\t/,"")}')
+            number_of_tabs=$(($number_of_tabs + 1))
+            if [[ $number_of_tabs -gt 1 ]]; then # if number of tabs is greater than 1
+              temp_revision=$(sed -n "$tempValue p" "$fileName" | cut -f 2)
+              echo "Adding $temp_revision to the revision array"
+              revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+            else
+              echo "adding a blank entry into the revision array"
+              revisionArray+=("")
+            fi
+            # revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)") # the above test seems to be working so far, more testing needed.
+
             manufactureQtyLine=$(( $oneLineAhead + 1 ))
             qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
 
