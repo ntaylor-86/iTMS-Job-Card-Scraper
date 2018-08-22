@@ -56,12 +56,15 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 ROTO LST/7000 TUBE JOBS
 
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
 CONDAMINE_CAMPERS="/mnt/Network-Drives/U-Drive/CONDAMINECAMPERS"
+CEDAR_CREEK="/mnt/Network-Drives/U-Drive/CEDARCREEKCOMPANY"
 DAVCO="/mnt/Network-Drives/U-Drive/DAVCO"
 EXPRESS_COACH_BUILDERS="/mnt/Network-Drives/U-Drive/EXPRESSCOACHES/ALL OFFICIAL PARTS DRAWINGS"
+GEMCUTS="/mnt/Network-Drives/U-Drive/GEMCUTS"
 HOLMWOOD="/mnt/Network-Drives/U-Drive/HOLMWOOD"
 JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
 KIMBERLEY="/mnt/Network-Drives/U-Drive/KIMBERLYKAMPERS"
 LIQUIP="/mnt/Network-Drives/U-Drive/LIQUIP"
+MONSTER="/mnt/Network-Drives/U-Drive/MONSTER"
 OFFROAD_RUSH="/mnt/Network-Drives/U-Drive/OFFROADRUSH"
 PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
 PROACTIVE_MAINTENANCE='/mnt/Network-Drives/U-Drive/PROACTIVE'
@@ -75,6 +78,12 @@ VARLEY_BNE="/mnt/Network-Drives/U-Drive/VARLEYBNE"
 VARLEY_TOMAGO="/mnt/Network-Drives/U-Drive/VARLEYTGO"
 WEBER="/mnt/Network-Drives/U-Drive/WEBERSOUTHPACIFIC"
 
+###############################################
+# Defining the coloured console text, used for 'echo' commands
+# to use these colours you will need the command 'echo -e'
+BLACK_WITH_GREEN="\e[30m\e[42m"
+RED_WITH_WHITE="\e[41m"
+DEFAULT="\e[39m\e[49m"  # you always have to use the default at the end of your echo
 
 ###############################################
 # Defining where the customer GEO's are
@@ -103,18 +112,21 @@ fi
 ###############################################################################################
 PRINT_CUSTOMER_PDFS="FALSE"
 PRINT_ROTO_PROGRAMS="FALSE"
+PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS="FALSE"
 TEST_MODE="FALSE"
 GRAB_ROTO_LSTs="FALSE"
 GRAB_GEOS="FALSE"
 CREATE_LABELS="FALSE"
 CREATE_MATERIAL_ARRAY="FALSE"
 
-echo "  ╔═════════════════════════════════════════╗"
-echo "  ║     1) Print the Customers PDF's        ║"
-echo "  ║     2) Print the existing ROTO PDF's    ║"
-echo "  ║     3) Grab all the ROTO LST's          ║"
-echo "  ║     4) Test Mode                        ║"
-echo "  ╚═════════════════════════════════════════╝"
+echo "  ╔════════════════════════════════════════════════════════╗"
+echo "  ║     1) Print the Customers PDF's                       ║"
+echo "  ║     2) Print the existing ROTO PDF's                   ║"
+echo "  ║     3) Grab all the ROTO LST's                         ║"
+echo "  ║     4) Test Mode                                       ║"
+echo "  ║     5) Print DWG and ROTO pdf at once...               ║"
+echo "  ║           >> (BUSTECH and EXPRESS ONLY!)               ║"
+echo "  ╚════════════════════════════════════════════════════════╝"
 echo
 read -p "   Please enter an option Number: " OPTION
 
@@ -135,6 +147,11 @@ elif [[ $OPTION == "3" ]]; then
 elif [[ $OPTION == "4" ]]; then
   echo "Test Mode selected!"
   TEST_MODE="TRUE"
+  CREATE_MATERIAL_ARRAY="TRUE"
+  sleep 1
+elif [[ $OPTION == "5" ]]; then
+  echo "Print DWG and ROTO at once selected!"
+  PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS="TRUE"
   CREATE_MATERIAL_ARRAY="TRUE"
   sleep 1
 else
@@ -305,7 +322,21 @@ do
             # Usually if 'Order Qty' is not two lines down form 'Issue Date' the gciPartNumber and Revision is two lines up from 'Order Qty'
             tempValue=$(( $oneLineAhead - 2 ))
             gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
-            revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+
+            # testing the number of tabs on the current line number, OFFR was pulling in the GCI part code for the rev
+            # testing if the line in the txt file is greater than one to see if this stops this behaviour
+            string=$(sed -n "$tempValue p" "$fileName")
+            number_of_tabs=$(echo "$string" | awk '{print gsub(/\t/,"")}')
+            number_of_tabs=$(($number_of_tabs + 1))
+            if [[ $number_of_tabs -gt 1 ]]; then  # if number of tabs is greater than 1
+              temp_revision=$(sed -n "$tempValue p" "$fileName" | cut -f 2)
+              echo "Adding $temp_revision to the revision array"
+              revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+            else
+              echo "adding a blank entry into the revision array"
+              revisionArray+=("")
+            fi
+
             manufactureQtyLine=$(( $oneLineAhead + 1 ))
             qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
 
@@ -342,7 +373,22 @@ do
             # Usually if 'Order Qty' is not two lines down form 'Issue Date' the gciPartNumber and Revision is two lines up from 'Order Qty'
             tempValue=$(( $oneLineAhead - 2 ))
             gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
-            revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+
+            ## testing the number of tabs on the current line, PROJECT MODULAR and others were pulling in the part number as the revision
+            ## this test should stop this behaviour, will see how it goes.
+            string=$(sed -n "$tempValue p" "$fileName")
+            number_of_tabs=$(echo "$string" | awk '{print gsub(/\t/,"")}')
+            number_of_tabs=$(($number_of_tabs + 1))
+            if [[ $number_of_tabs -gt 1 ]]; then # if number of tabs is greater than 1
+              temp_revision=$(sed -n "$tempValue p" "$fileName" | cut -f 2)
+              echo "Adding $temp_revision to the revision array"
+              revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)")
+            else
+              echo "adding a blank entry into the revision array"
+              revisionArray+=("")
+            fi
+            # revisionArray+=("$(sed -n "$tempValue p" "$fileName" | cut -f 2)") # the above test seems to be working so far, more testing needed.
+
             manufactureQtyLine=$(( $oneLineAhead + 1 ))
             qtyArray+=($(sed -n "$manufactureQtyLine p" "$fileName" | cut -f 5))
 
@@ -373,7 +419,7 @@ if [[ $CREATE_MATERIAL_ARRAY == "TRUE" ]]; then
   for (( i=0; i<${arrayLength}; i++ ));
   do
       linesAhead=$(( ${jobTickLineNumber[$i]} + 35 ))
-      materialCodeLine=$(( ${jobTickLineNumber[$i]} + 20 ))
+      materialCodeLine=$(( ${jobTickLineNumber[$i]} + 16 ))
 
       # testing from the jobTickLineNumber to $linesAhead if the part is a '3030 LASER' part
       if (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep '3030 LASER 2' -q); then
@@ -472,12 +518,173 @@ do
   echo "Ticket Number" $jobNumber"-"${ticketNumberArray[$i]}
   echo "GCI Part Number:" ${gciPartNumber[$i]}
   echo "Client Part Code:" ${clientPartNumber[$i]}
+
+  # testing the string length
+  string="${clientPartNumber[$i]}"
+  string_length=${#string}
+  if [[ $string_length -le 7 ]]; then
+    echo -e $RED_WITH_WHITE"string_length is less than 7"$DEFAULT
+  else
+    echo "string_length is greater than 7"
+  fi
+
+  echo "String Length:" $string_length
+
   echo "Revision:" ${revisionArray[$i]}
   echo "Qty:" ${qtyArray[$i]}
   echo "Process:" ${processArray[$i]}
   echo "Material:" ${materialCodeArray[$i]}
   echo
 done
+
+
+#########################################################################
+##########  Printing client drawings and ROTO progams at once  ##########
+#########################################################################
+
+if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
+
+  echo "PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS variable is TRUE"
+  echo
+  echo "variable customerName: $customerName"
+  echo "variable isThereRotoParts: $isThereRotoParts"
+  echo
+
+  sleep 1
+
+  echo "Starting to print the drawings and ROTO programs for" $customerName "Job Number" $jobNumber | lp -o fit-to-page
+
+  if [[ $customerName == "BUSTECH" && $isThereRotoParts == "TRUE" ]]; then
+
+      sleep 1
+
+      for (( i=0; i<${arrayLength}; i++ ));
+      do
+
+        cd "$BUSTECH"
+        sleep 0.5
+
+        echo
+        echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+        # testing the character length of the part
+        string="${clientPartNumber[$i]}"
+        if [[ "${#string}" -le 7 ]]; then  # testing if the string is less than 8 characters long
+          echo -e $RED_WITH_WHITE"$string is less than 7 characters long!"$DEFAULT
+          continue  # this forces the loop to jump to the next iteration
+        fi
+
+        # testing if there is a pdf with the client part number
+        if [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+            echo "Found a pdf using the Customer Part Number"
+            echo ${clientPartNumber[$i]}
+            while IFS= read -rd '' file <&3; do
+              echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+              # converting the pdf file to a post script file, so comments will get printed out
+              pdftops -paper A4 "$file"
+
+              # removing the pdf extension
+              # checking if the extension (.pdf) is UPPER CASE or lower case
+              if [[ "$file" == *PDF  ]]; then
+                  no_extension=${file%.PDF}
+              else
+                  no_extension=${file%.pdf}
+              fi
+
+              post_script_file="$no_extension.ps"
+              lp -o fit-to-page "$post_script_file"
+              sleep 2
+              rm "$post_script_file"
+            done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+          # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+          else
+            echo -e $RED_WITH_WHITE"Could not find a pdf at all."$DEFAULT
+            missed_a_pdf="TRUE"
+            missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+        fi
+
+        # going to try and print the ROTO program PDF
+        if [[ ${processArray[$i]} == "ROTO 3030" || ${processArray[$i]} == "BANDSAW" ]]; then
+            cd "$ROTO_PDF_FOLDER"
+            sleep 0.5
+            echo ${clientPartNumber[$i]} "is a ROTO 3030 part"
+            echo "$jobNumber-${ticketNumberArray[$i]} - ${clientPartNumber[$i]} - is a ROTO 3030 part" >>  "$ORIGINAL_FOLDER/$jobNumber.ROTO.log"
+            echo "Have to turn the '-' in the client part code into an '_'"
+            clientPartNumber[$i]=$(echo ${clientPartNumber[$i]//-/_})
+            for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
+                echo -e $BLACK_WITH_GREEN"Sending" "$j" "to PR7N7y"$DEFAULT
+                lp -o fit-to-page "$j"
+                sleep 1
+            done
+        fi
+
+      done
+  fi
+
+  if [[ $customerName == "EXPRESS COACH BUILDERS" && $isThereRotoParts == "TRUE" ]] || [[ $customerName == "BUSFURB PTY LTD" && $isThereRotoParts == "TRUE" ]]; then
+
+      sleep 1
+
+      echo "Entered the 'if' statement, if customer=express && isthereroto=true"
+
+      for (( i=0; i<${arrayLength}; i++ ));
+      do
+
+          cd "$EXPRESS_COACH_BUILDERS"
+          sleep 0.5
+
+          echo
+          echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+          # testing if there is a pdf with the client part number
+          if [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                # converting the pdf file to a post script file, so comments will get printed out
+                pdftops -paper A4 "$file"
+
+                # removing the pdf extension
+                # checking if the extension (.pdf) is UPPER CASE or lower case
+                if [[ "$file" == *PDF  ]]; then
+                    no_extension=${file%.PDF}
+                else
+                    no_extension=${file%.pdf}
+                fi
+
+                post_script_file="$no_extension.ps"
+                lp -o fit-to-page "$post_script_file"
+                sleep 2
+                rm "$post_script_file"
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all."$DEFAULT
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+          fi
+
+          # going to try and print the ROTO pdf program
+          if [[ ${processArray[$i]} == "ROTO 3030" || ${processArray[$i]} == "BANDSAW" ]]; then
+              cd "$ROTO_PDF_FOLDER"
+              sleep 0.5
+              echo ${gciPartNumber[$i]} "is a ROTO 3030 part"
+              echo "$jobNumber-${ticketNumberArray[$i]} - ${gciPartNumber[$i]} - is a ROTO 3030 part" >>  "$ORIGINAL_FOLDER/$jobNumber.ROTO.log"
+              for j in $(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
+                  echo -e $BLACK_WITH_GREEN"Sending" "$j" "to PR1N7Y"$DEFAULT
+                  lp -o fit-to-page "$j"
+                  sleep 5
+              done
+          fi
+
+      done
+
+  fi
+
+fi
 
 
 ########################################################
@@ -539,12 +746,20 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
             echo
             echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
 
+            # testing the character length of the part
+            string="${clientPartNumber[$i]}"
+            string_length=${#string}
+            if [[ $string_length -le 7 ]]; then  # testing if the string is less than 8 characters long
+              echo -e $RED_WITH_WHITE"$string is less than 7 characters long!"$DEFAULT
+              continue  # this forces the loop to jump to the next iteration
+            fi
+
             # testing if there is a pdf with the client part number
             if [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
               echo "Found a pdf using the Customer Part Number"
               echo ${clientPartNumber[$i]}
               while IFS= read -rd '' file <&3; do
-                echo "PRINTY going to print" $file
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file$DEFAULT
                 # converting the pdf file to a post script file, so comments will get printed out
                 pdftops -paper A4 "$file"
                 # removing the '.pdf' extension
@@ -557,7 +772,88 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
 
             # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
             else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all."$DEFAULT
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+        done
+      fi
+
+      if [[ $customerName == "BUSFURB PTY LTD" ]]; then
+          echo "The Customer is BUSFURB!!"
+          echo "Going to change into their directory..."
+          cd "$EXPRESS_COACH_BUILDERS"
+          echo
+          pwd
+          echo
+          sleep 1
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
               echo "Could not find a pdf at all."
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+          done
+      fi
+
+      if [[ $customerName == "CEDAR CREEK COMPANY PTY LTD" ]]; then
+        echo "Entered into the CEDAR CREEK if statement"
+        cd "$CEDAR_CREEK"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all." $DEFAULT
               missed_a_pdf="TRUE"
               missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
             fi
@@ -618,27 +914,9 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         done
       fi
 
-      if [[ $customerName == "JJ RICHARDS ENGINEERING PTY LTD" ]]; then
-        cd "$JJ_RICHARDS"
-        pwd
-        sleep 1
-        for (( i=0; i<${arrayLength}; i++ ));
-        do
-            # for j in $(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*"); do
-            #   echo "PRINTY is going to print" $j
-            #   lp -o fit-to-page -o page-right=25 "$j"
-            #   sleep 0.5
-            # done
-            while IFS= read -rd '' file <&3; do
-              echo "PRINTY going to print" $file
-              lp -o fit-to-page "$file"
-              sleep 0.5
-            done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
-        done
-      fi
-
-      if [[ $customerName == "KIMBERLEY KAMPERS" ]]; then
-        cd "$KIMBERLEY"
+      if [[ $customerName == "GEMCUTS" ]]; then
+        echo "Entered into the GCEMCUTS if statement"
+        cd "$GEMCUTS"
         pwd
         sleep 1
         for (( i=0; i<${arrayLength}; i++ ));
@@ -651,7 +929,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
               echo "Found a pdf using the GCI Part Number"
               echo ${gciPartNumber[$i]}
               while IFS= read -rd '' file <&3; do
-                echo "PRINTY going to print" $file
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
                 lp -o fit-to-page "$file"
                 sleep 2
               done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
@@ -661,10 +939,104 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
               echo "Found a pdf using the Customer Part Number"
               echo ${clientPartNumber[$i]}
               while IFS= read -rd '' file <&3; do
-                echo "PRINTY going to print" $file
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
                 lp -o fit-to-page "$file"
                 sleep 2
               done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all." $DEFAULT
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+        done
+      fi
+
+      if [[ $customerName == "JJ RICHARDS ENGINEERING PTY LTD" ]]; then
+        cd "$JJ_RICHARDS"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all." $DEFAULT
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+        done
+      fi
+
+      if [[ $customerName == "KIMBERLEY KAMPERS" ]]; then
+        cd "$KIMBERLEY"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            ## Kimberley Kampers has such a short part number that it returns a lot of unwanted results
+            ## e.g. KK175, will return KK1750, KK1751, KK1752 etc etc
+            ## going to try and fix this with ($part_number + [space_character]) & ($part_number + [underscore_character])
+            client_part_number="${clientPartNumber[$i]}"
+            # client_part_number_plus_space="$client_part_number "
+            client_part_number_plus_underscore=$client_part_number"_"
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the (client part number + [space_character])
+            elif [[ $(find -type f -iname "$client_part_number *.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "$client_part_number *.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the ($client_part_number + [underscore_character])
+          elif [[ $(find -type f -iname "$client_part_number_plus_underscore*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "$client_part_number_plus_underscore*.pdf" -not -path "./ARCHIVE/*" -print0)
 
             # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
             else
@@ -721,10 +1093,89 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
         done
       fi
 
+      if [[ $customerName == "MONSTER RIDES" ]]; then
+        cd "$MONSTER"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all." $DEFAULT
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+        done
+      fi
+
       if [[ $customerName == "G H VARLEY - BNE" ]]; then
           echo "The Customer is VARLEY BNE!!"
           echo "Going to change into their directory..."
           cd "$VARLEY_BNE"
+          echo
+          pwd
+          echo
+          sleep 1
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo "Could not find a pdf at all."
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+          done
+      fi
+
+      if [[ $customerName == "G H VARLEY - TOMAGO DEFENCE" ]]; then
+          echo "The Customer is VARLEY - TOMAGO DEFENCE!!"
+          echo "Going to change into their directory..."
+          cd "$VARLEY_TOMAGO"
           echo
           pwd
           echo
