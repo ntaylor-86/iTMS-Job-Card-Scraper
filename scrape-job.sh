@@ -68,6 +68,7 @@ MONSTER="/mnt/Network-Drives/U-Drive/MONSTER"
 OFFROAD_RUSH="/mnt/Network-Drives/U-Drive/OFFROADRUSH"
 PACEINNOVATION="/mnt/Network-Drives/U-Drive/PACEINNOVATION"
 PROACTIVE_MAINTENANCE='/mnt/Network-Drives/U-Drive/PROACTIVE'
+PTAUTOMATIONSOLUTIONS='/mnt/Network-Drives/U-Drive/PTAUTOMATION'
 RIPTIDE="/mnt/Network-Drives/U-Drive/RIPTIDE"
 SPEEDSAFE="/mnt/Network-Drives/U-Drive/SPEEDSAFE"
 STEELROD="/mnt/Network-Drives/U-Drive/STEELROD"
@@ -1301,6 +1302,47 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
             fi
 
         done
+      fi
+
+      if [[ $customerName == "P.T. AUTOMATION SOLUTIONS PTY LTD" ]]; then
+          echo "The Customer is P.T. AUTOMATION SOLUTIONS!!"
+          echo "Going to change into their directory..."
+          cd "$PTAUTOMATIONSOLUTIONS"
+          echo
+          pwd
+          echo
+          sleep 1
+          for (( i=0; i<${arrayLength}; i++ ));
+          do
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo "Could not find a pdf at all."
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+          done
       fi
 
       if [[ $customerName == "RIPTIDE CAMPERS" ]]; then
