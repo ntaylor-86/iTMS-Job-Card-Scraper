@@ -53,7 +53,6 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 ROTO LST/7000 TUBE JOBS
 
 ###############################################
 # Defining where the customer drawings are
-
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
 CONDAMINE_CAMPERS="/mnt/Network-Drives/U-Drive/CONDAMINECAMPERS"
 CEDAR_CREEK="/mnt/Network-Drives/U-Drive/CEDARCREEKCOMPANY"
@@ -130,6 +129,17 @@ echo "  ║     5) Print DWG and ROTO pdf at once...                   ║"
 echo "  ║           >> (BUSTECH, EXPRESS and PROJECT MODULAR ONLY!)  ║"
 echo "  ╚════════════════════════════════════════════════════════════╝"
 echo
+
+###############################################################################################
+# testing if there are roto parts in the jobN
+roto_count=$(cat $fileName | grep ROTO | wc -l)
+if [[ $roto_count > 0 ]]; then
+  echo
+  echo -e $BLACK_WITH_GREEN"I'VE FOUND SOME ROTO PARTS IN THIS JOB"$DEFAULT
+  echo -e $BLACK_WITH_GREEN"YOU SHOULD USE OPTION 5 BRO!"$DEFAULT
+  echo
+fi
+
 read -p "   Please enter an option Number: " OPTION
 
 if [[ $OPTION == "1" ]]; then
@@ -426,7 +436,6 @@ if [[ $CREATE_MATERIAL_ARRAY == "TRUE" ]]; then
       # testing from the jobTickLineNumber to $linesAhead if the part is a '3030 LASER' part
       if (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep '3030 LASER 2' -q); then
           echo "This part has 3030 LASER 2"
-
           processArray+=("3030 LASER 2")
 
           # getting the material code for the 3030 LASER 2 part
@@ -449,7 +458,6 @@ if [[ $CREATE_MATERIAL_ARRAY == "TRUE" ]]; then
       # testing from the jobTickLineNumber to $linesAhead if the part is a 'ROTO 3030' part
       elif (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep 'ROTO 3030' -q); then
           echo "This part has ROTO 3030"
-
           processArray+=("ROTO 3030")
 
           isThereRotoParts="TRUE"
@@ -474,7 +482,6 @@ if [[ $CREATE_MATERIAL_ARRAY == "TRUE" ]]; then
         # testing from the jobTickLineNumber to $linesAhead if the part is a 'BANDSAW' part
         elif (sed -n "${jobTickLineNumber[$i]},$linesAhead p" "$fileName" | grep 'BANDSAW' -q); then
             echo "This part has BANDSAW"
-
             processArray+=("BANDSAW")
 
             isThereRotoParts="TRUE"
@@ -499,7 +506,6 @@ if [[ $CREATE_MATERIAL_ARRAY == "TRUE" ]]; then
       else
           # if the part is neither a LASER or ROTO part
           echo "This part is neither a LASER or ROTO part"
-
           processArray+=("NOT LASER OR ROTO")
           materialCodeArray+=("N/A")
 
