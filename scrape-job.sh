@@ -55,6 +55,7 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 ROTO LST/7000 TUBE JOBS
 # Defining where the customer drawings are
 ABSOLUTE_PACE="/mnt/Network-Drives/U-Drive/ABSOLUTEPACE"
 BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
+BRYAN_BODIES="/mnt/Network-Drives/U-Drive/BRYANINDUSTRIES"
 CONDAMINE_CAMPERS="/mnt/Network-Drives/U-Drive/CONDAMINECAMPERS"
 CEDAR_CREEK="/mnt/Network-Drives/U-Drive/CEDARCREEKCOMPANY"
 DAVCO="/mnt/Network-Drives/U-Drive/DAVCO"
@@ -334,7 +335,12 @@ do
             echo "Since 'Order Qty' was not two lines down from 'Issue Date' I have to approach this differently..."
             # Usually if 'Order Qty' is not two lines down form 'Issue Date' the gciPartNumber and Revision is two lines up from 'Order Qty'
             tempValue=$(( $oneLineAhead - 2 ))
-            gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
+            # removing forward slashes from the part number if there are any
+            temp_gci_part_number=$(sed -n "$tempValue p" "$fileName" | cut -f 1)
+            temp_gci_part_number=$(echo ${temp_gci_part_number////-})
+            # adding the part number to the array
+            gciPartNumber+=($temp_gci_part_number)
+            # gciPartNumber+=($(sed -n "$tempValue p" "$fileName" | cut -f 1))
 
             # testing the number of tabs on the current line number, OFFR was pulling in the GCI part code for the rev
             # testing if the line in the txt file is greater than one to see if this stops this behaviour
@@ -929,6 +935,46 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
             fi
 
           done
+      fi
+
+      if [[ $customerName == "BRYAN BODIES AUSTRALIA PTY LTD" ]]; then
+        echo "Entered into the BRYAN BODIES if statement"
+        cd "$BRYAN_BODIES"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the GCI part number
+            if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all." $DEFAULT
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+        done
       fi
 
       if [[ $customerName == "CEDAR CREEK COMPANY PTY LTD" ]]; then
