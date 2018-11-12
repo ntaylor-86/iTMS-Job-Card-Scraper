@@ -64,6 +64,7 @@ GEMCUTS="/mnt/Network-Drives/U-Drive/GEMCUTS"
 HOLMWOOD="/mnt/Network-Drives/U-Drive/HOLMWOOD"
 JJ_RICHARDS="/mnt/Network-Drives/U-Drive/JJRICHARDSENG"
 KIMBERLEY="/mnt/Network-Drives/U-Drive/KIMBERLYKAMPERS"
+LIFESTYLE="/mnt/Network-Drives/U-Drive/LIFESTYLE"
 LIQUIP="/mnt/Network-Drives/U-Drive/LIQUIP"
 MONSTER="/mnt/Network-Drives/U-Drive/MONSTER"
 OFFROAD_RUSH="/mnt/Network-Drives/U-Drive/OFFROADRUSH"
@@ -1197,6 +1198,49 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
             # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
             else
               echo "Could not find a pdf at all."
+              missed_a_pdf="TRUE"
+              missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
+            fi
+
+        done
+      fi
+
+      if [[ $customerName == "LIFESTYLE CAMPER TRAILERS" ]]; then
+        echo "Entered into the LIFESTYLE CAMPER TRAILERS if statement"
+        cd "$LIFESTYLE"
+        pwd
+        sleep 1
+        for (( i=0; i<${arrayLength}; i++ ));
+        do
+            echo
+            echo "Testing ticket number" $jobNumber"-"${ticketNumberArray[$i]}
+
+            # testing if there is a pdf with the GCI part number
+            # if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+            ## NEW TEST TO STOP IT FROM FINGIND 'EXTRA' DRAWGINS | LIKE LIFE2201_2.pdf AND LIFE2201_OPP_HAND_2.pdf
+            if [[ $(find . -regextype posix-extended -regex ".*${gciPartNumber[$i]}.{2,4}\.pdf|.*${gciPartNumber[$i]}.{2,4}\.PDF" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the GCI Part Number"
+              echo ${gciPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              # done 3< <(find -type f -iname "${gciPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+            done 3< <(find -regextype posix-extended -regex ".*${gciPartNumber[$i]}.{2,4}\.pdf|.*${gciPartNumber[$i]}.{2,4}\.PDF" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the client part number
+            elif [[ $(find -type f -iname "${clientPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
+            else
+              echo -e $RED_WITH_WHITE"Could not find a pdf at all." $DEFAULT
               missed_a_pdf="TRUE"
               missed_a_pdf_array+=($jobNumber"-"${ticketNumberArray[$i]}", "${gciPartNumber[$i]})
             fi
