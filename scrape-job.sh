@@ -1206,6 +1206,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
             client_part_number="${clientPartNumber[$i]}"
             # client_part_number_plus_space="$client_part_number "
             client_part_number_plus_underscore=$client_part_number"_"
+            client_part_number_plus_hyphen=$client_part_number"-"
 
             # testing if there is a pdf with the GCI part number
             if [[ $(find -type f -iname "${gciPartNumber[$i]}*.pdf" | wc -l) > 0 ]]; then
@@ -1228,7 +1229,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
               done 3< <(find -type f -iname "$client_part_number *.pdf" -not -path "./ARCHIVE/*" -print0)
 
             # testing if there is a pdf with the ($client_part_number + [underscore_character])
-          elif [[ $(find -type f -iname "$client_part_number_plus_underscore*.pdf" | wc -l) > 0 ]]; then
+            elif [[ $(find -type f -iname "$client_part_number_plus_underscore*.pdf" | wc -l) > 0 ]]; then
               echo "Found a pdf using the Customer Part Number"
               echo ${clientPartNumber[$i]}
               while IFS= read -rd '' file <&3; do
@@ -1236,6 +1237,17 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
                 lp -o fit-to-page "$file"
                 sleep 2
               done 3< <(find -type f -iname "$client_part_number_plus_underscore*.pdf" -not -path "./ARCHIVE/*" -print0)
+
+            # testing if there is a pdf with the ($client_part_number + [hyphen_character])
+          elif [[ $(find -type f -iname "$client_part_number_plus_hyphen*.pdf" | wc -l) > 0 ]]; then
+              echo "Found a pdf using the Customer Part Number"
+              echo ${clientPartNumber[$i]}
+              while IFS= read -rd '' file <&3; do
+                echo "PRINTY going to print" $file
+                lp -o fit-to-page "$file"
+                sleep 2
+              done 3< <(find -type f -iname "$client_part_number_plus_hyphen*.pdf" -not -path "./ARCHIVE/*" -print0)
+
 
             # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
             else
