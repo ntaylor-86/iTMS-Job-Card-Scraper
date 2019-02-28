@@ -723,21 +723,8 @@ if [[ $PRINT_CUSTOMER_PDFS_AND_ROTO_PROGRAMS == "TRUE" ]]; then
               echo ${clientPartNumber[$i]}
               while IFS= read -rd '' file <&3; do
                 echo -e $BLACK_WITH_GREEN"PRINTY going to print" $file $DEFAULT
-                # converting the pdf file to a post script file, so comments will get printed out
-                pdftops -paper A4 "$file"
-
-                # removing the pdf extension
-                # checking if the extension (.pdf) is UPPER CASE or lower case
-                if [[ "$file" == *PDF  ]]; then
-                    no_extension=${file%.PDF}
-                else
-                    no_extension=${file%.pdf}
-                fi
-
-                post_script_file="$no_extension.ps"
-                lp -o fit-to-page "$post_script_file"
+                lp -o fit-to-page "$file"
                 sleep 2
-                rm "$post_script_file"
               done 3< <(find -type f -iname "${clientPartNumber[$i]}*.pdf" -not -path "./ARCHIVE/*" -print0)
 
             # if no pdf could be found at all, this will get stored into the 'missed_a_pdf_array' and the user will get notified of the jobNumber-ticketNumber and partNumber that is missing
