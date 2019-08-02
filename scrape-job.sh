@@ -54,7 +54,7 @@ ROTO_LST_READY_TO_NEST="/mnt/Network-Drives/T-Drive/7000 ROTO LST/7000 TUBE JOBS
 ###############################################
 # Defining where the customer drawings are
 ABSOLUTE_PACE="/mnt/Network-Drives/U-Drive/ABSOLUTEPACE"
-BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF DRAWINGS"
+BUSTECH="/mnt/Network-Drives/U-Drive/BUSTECH/PDF"
 BRYAN_BODIES="/mnt/Network-Drives/U-Drive/BRYANINDUSTRIES"
 CONDAMINE_CAMPERS="/mnt/Network-Drives/U-Drive/CONDAMINECAMPERS"
 CEDAR_CREEK="/mnt/Network-Drives/U-Drive/CEDARCREEKCOMPANY"
