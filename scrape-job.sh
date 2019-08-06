@@ -1475,7 +1475,7 @@ if [[ $PRINT_CUSTOMER_PDFS == "TRUE" ]]; then
           done
       fi
 
-      if [[ $customerName == "G H VARLEY - TOMAGO DEFENCE" ]]; then
+      if [[ $customerName == "G H VARLEY - TOMAGO DEFENCE" || $customerName == "G H VARLEY - YENNORA" ]]; then
           echo "The Customer is VARLEY - TOMAGO DEFENCE!!"
           echo "Going to change into their directory..."
           cd "$VARLEY_TOMAGO"
